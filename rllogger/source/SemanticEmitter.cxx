@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 
+#include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/document/DocumentEvent.hpp>
 #include <com/sun/star/document/XDocumentEventBroadcaster.hpp>
 #include <com/sun/star/document/XDocumentEventListener.hpp>
@@ -320,8 +321,9 @@ void install(const std::filesystem::path& sessionDir)
     g_installed = true;
 
     // Defer the actual UNO subscription until VCL's main loop is ticking;
-    // see doInstallImpl comment above.
-    g_installIdle.SetInvokeHandler(Link<Timer*, void>(nullptr, doInstallImpl));
+    // see doInstallImpl comment above. The Link ctor is private — must
+    // go through LINK_NONMEMBER, which expects a (void*, Arg) callable.
+    g_installIdle.SetInvokeHandler(LINK_NONMEMBER(nullptr, doInstallImpl));
     g_installIdle.SetPriority(TaskPriority::LOWEST);
     g_installIdle.Start();
 }
