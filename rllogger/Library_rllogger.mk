@@ -9,11 +9,6 @@
 
 $(eval $(call gb_Library_Library,rllogger))
 
-$(eval $(call gb_Library_set_include,rllogger,\
-    -I$(SRCDIR)/rllogger/inc \
-    $$(INCLUDE) \
-))
-
 $(eval $(call gb_Library_use_libraries,rllogger,\
     sal \
 ))

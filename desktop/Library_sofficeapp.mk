@@ -68,6 +68,7 @@ $(eval $(call gb_Library_use_libraries,sofficeapp,\
     fwk \
     i18nlangtag \
     $(if $(filter OPENCL,$(BUILD_TYPE)),opencl) \
+    rllogger \
     sal \
     salhelper \
     sb \

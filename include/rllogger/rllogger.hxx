@@ -9,13 +9,16 @@
 
 #pragma once
 
+#include <sal/types.h>
+
 namespace rllogger {
 
 // Entry point invoked once at soffice startup. Probes LO_RL_LOG_DIR;
 // if unset, returns immediately and installs no hooks. If set, brings
-// up the session directory, raw capture, semantic interceptor, and
-// background writer thread.
-void initialize();
+// up the session directory; subsequent commits hang raw capture, the
+// semantic dispatch interceptor, the LOK-based outcome snapshot, and
+// the background writer thread off the same activation point.
+SAL_DLLPUBLIC_EXPORT void initialize();
 
 } // namespace rllogger
 
