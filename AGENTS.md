@@ -188,7 +188,12 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     --disable-extension-update \
     --disable-pdfimport
 
-make sw sc sd 2>&1 | tee build.log
+# First-time build: `make` (no args) runs the full bootstrap → fetch →
+# build-tools → all-modules chain. `make sw sc sd` SKIPS that chain and
+# fails on missing prereqs like `Executable/concat-deps` and
+# `oox/generated/misc/namespaces.txt`. Use module-level builds only AFTER
+# this initial full make has succeeded — see §6 "Iteration after Phase 0".
+make 2>&1 | tee build.log
 ```
 
 Verified configure-flag names (some upstream renames caught us during
