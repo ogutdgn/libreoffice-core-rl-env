@@ -40,8 +40,4 @@ $(eval $(call gb_Library_add_libs,libreofficekitgtk,\
 ))
 endif
 
-$(eval $(call gb_Library_use_packages,libreofficekitgtk, \
-    libreofficekit_selectionhandles \
-))
-
 # vim: set noet sw=4 ts=4:
