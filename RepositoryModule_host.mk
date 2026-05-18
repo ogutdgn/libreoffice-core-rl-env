@@ -68,7 +68,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	$(call gb_Helper_optional,DESKTOP,fpicker) \
 	framework \
 	$(call gb_Helper_optional,HELP,helpcontent2) \
-	hwpfilter \
 	i18nlangtag \
 	i18npool \
 	i18nutil \
@@ -79,7 +78,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	libreofficekit \
 	lingucomponent \
 	linguistic \
-	lotuswordpro \
 	$(call gb_Helper_optional,DESKTOP,l10ntools) \
 	$(call gb_Helper_optional,NLPSOLVER,nlpsolver) \
 	o3tl \

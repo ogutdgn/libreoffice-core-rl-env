@@ -541,8 +541,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,pdfimport, \
 endif
 
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,writer, \
-	hwp \
-	$(if $(ENABLE_LWP),lwpft) \
 	msword \
 	swd \
 	t602filter \

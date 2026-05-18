@@ -150,9 +150,7 @@ gb_MERGE_LIBRARY_LIST += \
 		fps_aqua \
 	) \
 	graphicfilter \
-	hwp \
 	log \
-	$(if $(ENABLE_LWP),lwpft) \
 	$(if $(filter $(OS),MACOSX), \
 		macab1 \
 	) \
