@@ -9,6 +9,7 @@
 
 #include <rllogger/rllogger.hxx>
 
+#include <OutcomeSnapshot.hxx>
 #include <RawCapture.hxx>
 #include <SemanticEmitter.hxx>
 
@@ -117,6 +118,11 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     // subscription is deferred to a VCL idle so it runs after the
     // service manager is fully bootstrapped.
     semantic::install(g_sessionDir);
+
+    // Remember the outcome.jsonl path; the periodic snapshot timer
+    // is started lazily from raw::rawEventHandler once the VCL
+    // scheduler is alive.
+    outcome::install(g_sessionDir);
 
     std::fprintf(stderr,
                  "rllogger: session %s active at %s\n",

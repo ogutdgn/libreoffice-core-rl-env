@@ -8,6 +8,7 @@
  */
 
 #include <RawCapture.hxx>
+#include <OutcomeSnapshot.hxx>
 #include <RecentRaw.hxx>
 #include <SemanticEmitter.hxx>
 
@@ -220,6 +221,10 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     // is dispatching events, the UNO context is ready. The retry is
     // a cheap atomic load on every subsequent event.
     semantic::retrySubscription();
+    // Same lazy start for the outcome snapshot AutoTimer; we can't
+    // create / Start() it from rllogger::initialize() because the
+    // scheduler isn't running yet.
+    outcome::retryStart();
 
     auto* w = dynamic_cast<VclWindowEvent*>(&rEvent);
     void* pData = w ? w->GetData() : nullptr;
