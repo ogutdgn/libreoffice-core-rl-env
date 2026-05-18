@@ -422,7 +422,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	forui \
 	fsstorage \
 	fwk \
-    $(call gb_Helper_optionals_or,HELPTOOLS XMLHELP,helplinker) \
 	i18npool \
 	i18nsearch \
 	$(if $(ENABLE_JAVA),jdbc) \
