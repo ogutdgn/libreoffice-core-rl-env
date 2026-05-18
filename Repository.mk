@@ -1117,6 +1117,13 @@ $(eval $(call gb_Helper_register_packages_for_install,onlineupdate,\
 	$(if $(ENABLE_ONLINE_UPDATE),$(if $(filter LINUX SOLARIS,$(OS)),setup_native_scripts)) \
 ))
 
+ifeq (LIBRELOGO,$(filter LIBRELOGO,$(BUILD_TYPE)))
+$(eval $(call gb_Helper_register_packages_for_install,librelogo, \
+	librelogo \
+	librelogo_properties \
+))
+endif
+
 
 # External executables
 $(eval $(call gb_ExternalExecutable_register_executables,\
