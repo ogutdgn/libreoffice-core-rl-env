@@ -10,6 +10,7 @@
 #include <rllogger/rllogger.hxx>
 
 #include <OutcomeSnapshot.hxx>
+#include <Persist.hxx>
 #include <RawCapture.hxx>
 #include <SemanticEmitter.hxx>
 
@@ -109,6 +110,12 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     touchEmptyFile(g_sessionDir / "outcome.jsonl");
 
     g_active = true;
+
+    // Start the background writer thread that drains raw.jsonl and
+    // semantic.jsonl. Producers (raw/semantic) only push to its
+    // queues; the main thread never opens or flushes those files
+    // again.
+    persist::install(g_sessionDir);
 
     // Install the raw VCL event listener; key/mouse/focus events start
     // appending to raw.jsonl from here on.

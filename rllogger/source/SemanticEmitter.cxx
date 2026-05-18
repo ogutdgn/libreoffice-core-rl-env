@@ -10,13 +10,12 @@
 #include <SemanticEmitter.hxx>
 
 #include <CommandMap.hxx>
+#include <Persist.hxx>
 #include <RecentRaw.hxx>
 
 #include <atomic>
 #include <chrono>
 #include <cstdio>
-#include <fstream>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -48,8 +47,6 @@ namespace {
 // --- Module state -----------------------------------------------------
 
 bool g_installed = false;
-std::ofstream g_stream;
-std::mutex g_streamMutex;
 std::atomic<uint64_t> g_seq{0};
 
 // --- JSON helpers -----------------------------------------------------
@@ -131,13 +128,6 @@ std::string_view detectTrigger(uint64_t nowMs)
     }
 }
 
-void writeLine(const std::string& line)
-{
-    std::lock_guard<std::mutex> lock(g_streamMutex);
-    if (!g_stream.is_open()) return;
-    g_stream << line << '\n';
-    g_stream.flush();
-}
 
 // --- XDispatchRecorder implementation ---------------------------------
 //
@@ -200,7 +190,7 @@ public:
            << R"("trigger":")" << trigger << R"(",)"
            << R"("argCount":)" << lArguments.getLength()
            << '}';
-        writeLine(os.str());
+        persist::enqueueSemantic(os.str());
     }
 
     void SAL_CALL recordDispatchAsComment(const util::URL& aURL,
@@ -358,22 +348,9 @@ void retrySubscription()
     trySubscribeOnce();
 }
 
-void install(const std::filesystem::path& sessionDir)
+void install(const std::filesystem::path& /*sessionDir*/)
 {
     if (g_installed) return;
-
-    {
-        std::lock_guard<std::mutex> lock(g_streamMutex);
-        g_stream.open(sessionDir / "semantic.jsonl", std::ios::app);
-    }
-    if (!g_stream.is_open())
-    {
-        std::fprintf(stderr,
-                     "rllogger.semantic: cannot open %s for append\n",
-                     (sessionDir / "semantic.jsonl").string().c_str());
-        return;
-    }
-
     g_installed = true;
 
     // The UNO subscription is *not* attempted here. install() runs from

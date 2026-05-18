@@ -9,13 +9,13 @@
 
 #include <RawCapture.hxx>
 #include <OutcomeSnapshot.hxx>
+#include <Persist.hxx>
 #include <RecentRaw.hxx>
 #include <SemanticEmitter.hxx>
 
 #include <atomic>
 #include <chrono>
 #include <cstdio>
-#include <fstream>
 #include <sstream>
 
 #include <vcl/svapp.hxx>
@@ -32,7 +32,6 @@ namespace rllogger::raw {
 namespace {
 
 bool g_installed = false;
-std::ofstream g_stream;
 std::atomic<uint64_t> g_seq{0};
 std::chrono::steady_clock::time_point g_sessionStart;
 Link<VclSimpleEvent&, void> g_listenerLink;
@@ -209,7 +208,7 @@ void writeTarget(std::ostringstream& os, vcl::Window* w)
 // main thread under SolarMutex by VCL's event dispatch.
 void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
 {
-    if (!g_stream.is_open()) return;
+    if (!g_installed) return;
 
     const VclEventId id = rEvent.GetId();
     const char* eventName = nameForEventId(id);
@@ -268,11 +267,9 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     writeModifiers(os, mods);
     os << ',';
     writeTarget(os, pWindow);
-    os << "}\n";
+    os << '}';
 
-    const std::string line = os.str();
-    g_stream << line;
-    g_stream.flush();
+    persist::enqueueRaw(os.str());
 
     // Update the recent-raw snapshot for the semantic emitter's
     // trigger heuristic. Only key / mouse-button events count —
@@ -303,19 +300,12 @@ RecentRawSnapshot getLastRaw()
     return g_lastRaw;
 }
 
-void install(const std::filesystem::path& sessionDir)
+void install(const std::filesystem::path& /*sessionDir*/)
 {
     if (g_installed) return;
 
-    g_stream.open(sessionDir / "raw.jsonl", std::ios::app);
-    if (!g_stream.is_open())
-    {
-        std::fprintf(stderr,
-                     "rllogger.raw: cannot open %s for append\n",
-                     (sessionDir / "raw.jsonl").string().c_str());
-        return;
-    }
-
+    // The file lives in persist::; we only need a session-clock origin
+    // and the VCL listener.
     g_sessionStart = std::chrono::steady_clock::now();
     g_listenerLink = LINK_NONMEMBER(nullptr, rawEventHandler);
     Application::AddEventListener(g_listenerLink);

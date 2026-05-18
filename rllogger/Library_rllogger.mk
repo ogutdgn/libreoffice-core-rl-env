@@ -29,6 +29,7 @@ $(eval $(call gb_Library_add_exception_objects,rllogger,\
     rllogger/source/rllogger \
     rllogger/source/CommandMap \
     rllogger/source/OutcomeSnapshot \
+    rllogger/source/Persist \
     rllogger/source/RawCapture \
     rllogger/source/SemanticEmitter \
 ))
