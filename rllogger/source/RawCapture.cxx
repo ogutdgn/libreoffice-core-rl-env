@@ -33,9 +33,14 @@ std::atomic<uint64_t> g_seq{0};
 std::chrono::steady_clock::time_point g_sessionStart;
 Link<VclSimpleEvent&, void> g_listenerLink;
 
-// Minimal JSON string escape — handles backslash, quote, control chars.
-// LO interactions occasionally produce non-ASCII (text input), so we
-// also escape > 0x7F to \uXXXX form to keep the output strictly ASCII.
+// JSON string escape. Input is treated as UTF-8 (the LO convention via
+// OUStringToOString). Only control bytes (< 0x20) and JSON's two
+// mandatory escapes (quote, backslash) get \uXXXX / \\X treatment.
+// All other bytes — including the multi-byte UTF-8 sequences for
+// non-ASCII characters — pass through verbatim, since JSON allows
+// UTF-8 string content directly. Escaping each byte of a multi-byte
+// sequence separately would produce nonsense ("â"
+// instead of a single em dash) on the consumer side.
 std::string escapeJson(std::string_view s)
 {
     std::string out;
@@ -52,7 +57,7 @@ std::string escapeJson(std::string_view s)
             case '\r': out += "\\r"; break;
             case '\t': out += "\\t"; break;
             default:
-                if (c < 0x20 || c >= 0x80)
+                if (c < 0x20)
                 {
                     char buf[8];
                     std::snprintf(buf, sizeof(buf), "\\u%04x", c);
