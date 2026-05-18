@@ -99,7 +99,9 @@
 #include <cppuhelper/implbase.hxx>
 #include <uno/current_context.hxx>
 
+#if HAVE_FEATURE_OPENCL
 #include <opencl/OpenCLZone.hxx>
+#endif
 #include <opengl/zone.hxx>
 #include <skia/zone.hxx>
 #include <watchdog.hxx>
