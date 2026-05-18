@@ -329,10 +329,12 @@ void install(const std::filesystem::path& sessionDir)
 
     g_installed = true;
 
-    // Try the UNO subscription synchronously; if the service manager is
-    // not yet wired we'll retry on the first raw VCL event via
-    // retrySubscription() called from RawCapture.cxx.
-    trySubscribeOnce();
+    // The UNO subscription is *not* attempted here. install() runs from
+    // sofficemain before the UNO bootstrap completes, and
+    // comphelper::getProcessComponentContext() can SIGSEGV (not throw)
+    // when called at that point. The first raw VCL event in
+    // RawCapture.cxx calls retrySubscription() once the scheduler is
+    // ticking and UNO is wired.
 }
 
 } // namespace rllogger::semantic
