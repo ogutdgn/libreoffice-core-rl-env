@@ -133,7 +133,7 @@ in-place — `dev` stays clean.
 | **0** | Verify vanilla master builds on owner's WSL setup | ✓ done — `942e4161c` |
 | **1** | Incremental module deletions (1A–1G, build verified each) | ✓ done — `d38f631d4` |
 | **2** | (Optional) folder restructure into `apps/` + `core/` | **cancelled — see note below** |
-| **3** | Writer: structured user-action logger | **current** |
+| **3** | Writer: structured user-action logger | ✓ V1 done — `854ec4ae3` (see §4.3) |
 | **4** | Writer UI redesign (→ MS Word visual/interaction parity) | future |
 | **5** | Calc: logger + UI redesign (→ MS Excel) | future |
 | **6** | Impress: logger + UI redesign (→ MS PowerPoint) | future |
@@ -153,9 +153,8 @@ the day-to-day cognitive win. Vanilla layout stays. The
 `refactor/apps-core-folder-split` branch both document the mechanism
 (`gb_Module_MODULELOCATIONS`) if a future Phase decides to revisit.
 
-We are now at the start of Phase 3. Phase 0 and Phase 1 are green:
-vanilla build (with the 7 module-deletion groups applied) produces
-`instdir/program/soffice` and headless conversion roundtrips work.
+Phase 3 V1 is complete on `phase3/writer-logger`. See §4.3 for the
+runtime contract and §10 references for the design doc.
 
 ### Phase 1 — modules to delete (in suggested order)
 
@@ -218,6 +217,56 @@ work may build on:
 | Macro recorder (`DispatchRecorder`) | `framework/source/services/dispatchrecorder.cxx` | Already records user actions as BASIC code. Pipeline can be repurposed for a structured (JSON) event log. |
 | VCL event listeners | `vcl/source/window/` | Lower-level: keystrokes, mouse, focus. Use only if `SfxDispatcher` granularity is insufficient. |
 | `SAL_INFO` / `SAL_WARN` | `sal/log.hxx` | Compile-time debug logging only. **Not** suitable for runtime user-action log. |
+
+### 4.3 Phase 3 — Writer logger (V1 contract)
+
+A new top-level module `rllogger/` ships an opt-in event logger.
+The module always builds and links, but installs no hooks unless the
+`LO_RL_LOG_DIR` environment variable is set — zero overhead when off.
+
+**Activation**
+
+```sh
+LO_RL_LOG_DIR=/tmp/rl-test instdir/program/soffice --writer --norestore
+```
+
+On startup the logger creates `$LO_RL_LOG_DIR/<sessionId>/` containing
+three append-only / overwrite files:
+
+| File | Contents | Cadence |
+|---|---|---|
+| `raw.jsonl` | VCL events (key/mouse/focus/command/gesture) | One line per event, written by a background thread |
+| `semantic.jsonl` | `.uno:*` dispatches mapped to RL-friendly names, plus `session_start`/`session_end` lifecycle events | One line per dispatch |
+| `outcome.jsonl` | Current document snapshot (URL, modified flag, paragraph / word / char counts) | Single line, overwritten every 250 ms |
+
+Each semantic line carries `name`, `rawName` (raw `.uno:` URL),
+`trigger` ∈ `{shortcut, toolbar, menu, click, programmatic}`, and a
+`rawEventIdRange` linking back to the gesture's raw events.
+
+**Module map**
+
+| File | Role |
+|---|---|
+| `rllogger/source/rllogger.cxx` | Public entry: env probe, session dir, lifecycle events, atexit |
+| `rllogger/source/RawCapture.cxx` | VCL global listener; tracks recent-raw snapshot + gesture window |
+| `rllogger/source/SemanticEmitter.cxx` | `XDispatchRecorder` impl attached to every Frame via `theGlobalEventBroadcaster` |
+| `rllogger/source/CommandMap.cxx` | `.uno:Bold` → `format_bold` table (40+ Writer entries) |
+| `rllogger/source/OutcomeSnapshot.cxx` | 250 ms `AutoTimer` querying `XTextDocument` for word/char counts |
+| `rllogger/source/Persist.cxx` | Background writer thread + `std::deque` queues |
+
+`sofficemain` calls `rllogger::initialize()` exactly once. UNO calls
+are deferred to the first VCL event because the service manager isn't
+bootstrapped when `initialize()` runs.
+
+**Deferred to V2**
+
+- Final outcome flush at shutdown (UNO teardown segfaults from atexit)
+- Cursor / selection / format-at-cursor fields in outcome snapshot
+- Replay tool that drives Writer headlessly from `raw.jsonl`
+- Password / form-field auto-redaction
+
+Full design and step-by-step verification log in
+[`docs/architecture/PHASE3_LOGGER_DESIGN.md`](docs/architecture/PHASE3_LOGGER_DESIGN.md).
 
 ---
 

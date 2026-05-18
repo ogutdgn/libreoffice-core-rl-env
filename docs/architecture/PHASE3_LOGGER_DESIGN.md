@@ -1,6 +1,12 @@
 # Phase 3 — Writer Logger Design (V1)
 
-> Status: approved 2026-05-18. Implementation tracked on `phase3/writer-logger`.
+> Status: **V1 complete 2026-05-18** on `phase3/writer-logger` (head:
+> `854ec4ae3`). Smoke-tested in Writer: 1654 raw + 36 semantic + 1
+> outcome line, all three trigger heuristics (`shortcut` /
+> `toolbar` / `menu`) verified, `rawEventIdRange` correctly brackets
+> each gesture, `session_start` / `session_end` bracket each session,
+> headless `--terminate_after_init` exits 0.
+>
 > Reference: `cua-bench/apps/figma/mock/src/logger/` (raw/semantic/outcome 3-tier pattern).
 
 ## 1. Purpose
