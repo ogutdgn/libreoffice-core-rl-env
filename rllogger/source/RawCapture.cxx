@@ -106,7 +106,7 @@ uint64_t wallTimeMs()
 void writeKeyFields(std::ostringstream& os, const KeyEvent* k)
 {
     if (!k) { os << R"("fields":{})"; return; }
-    const KeyCode& kc = k->GetKeyCode();
+    const vcl::KeyCode& kc = k->GetKeyCode();
     os << R"("fields":{)"
        << R"("keyCode":)" << kc.GetCode() << ','
        << R"("char":)" << k->GetCharCode() << ','
