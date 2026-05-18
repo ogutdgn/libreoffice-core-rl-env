@@ -134,12 +134,11 @@ void onAtexit()
 {
     if (!g_active) return;
     emitSessionEnd();
-    // One last document-state snapshot so outcome.jsonl reflects the
-    // final state instead of the last 250 ms tick.
-    outcome::flushFinal();
-    // Drain the queues and join the writer thread. Subsequent
-    // enqueueRaw / enqueueSemantic become silent no-ops, so any VCL
-    // events still in flight after this point are quietly dropped.
+    // outcome::flushFinal() used to run here, but std::atexit fires
+    // after VCL / UNO have begun their own teardown. The UNO calls
+    // inside buildAndWrite() then SIGSEGV — try/catch can't trap a
+    // segfault. The periodic 250 ms timer guarantees outcome.jsonl
+    // is at most one tick stale, which is good enough for V1.
     persist::shutdown();
     g_active = false;
 }
