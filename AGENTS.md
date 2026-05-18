@@ -169,9 +169,15 @@ git clone https://github.com/ogutdgn/libreoffice-core-rl-env.git lo-dev
 cd lo-dev
 git checkout dev
 
-./autogen.sh
+# Clean PATH first or configure may mis-detect this as a
+# Windows-as-helper build (see §10 pitfall #4).
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-./configure \
+# autogen.sh forwards all flags to configure and persists them in
+# `autogen.lastrun`. Do NOT call `./configure` separately afterwards —
+# autogen.sh already runs configure for you. Calling autogen.sh with
+# no args will run configure with no flags and fail on the Java check.
+./autogen.sh \
     --without-java \
     --without-help \
     --disable-libcmis \
