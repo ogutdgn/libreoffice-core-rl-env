@@ -9,17 +9,34 @@
 
 This is a **fork of LibreOffice core**, being shaped into a runtime
 environment for downstream RL agent experimentation (Computer Use
-Agents). The end goal is to **keep only Writer, Calc, and Impress**
-and to be able to modify their UI (especially Writer) freely.
+Agents). The end goal is to keep only **Writer, Calc, and Impress**,
+add a structured user-action **logger** for RL training/replay, and
+**redesign the UI** to mimic MS Word / Excel / PowerPoint so that
+agent skills transfer cleanly between Office and this open stack.
 
 Fork: <https://github.com/ogutdgn/libreoffice-core-rl-env>
+
+### Roadmap at a glance
+
+The work proceeds in tightly ordered stages — finish each before
+starting the next:
+
+1. **Strip** — delete unused modules, restructure folders for
+   readability. Build verified after every group. (Phase 1, current.)
+2. **Logger** — structured event log of every user action (menu,
+   toolbar, keyboard) per app, in order: Writer → Calc → Impress.
+   Builds on the existing hook points listed in §4 "Existing event /
+   logger infrastructure".
+3. **UI redesign** — Writer → Word, Calc → Excel, Impress →
+   PowerPoint visual / interaction parity. Same order as the logger.
+4. **Distribution** — Docker multi-stage image with pre-built
+   `instdir/` baked in. RL agents pull the image; they don't rebuild.
 
 ### Two ways this fork will be used
 
 1. **Development** (the owner + you, on a single workstation): edit
-   source, `make sw sc sd`, run `instdir/program/soffice` to verify.
-2. **Distribution** (later): Docker multi-stage image with pre-built
-   `instdir/` baked in. RL agents pull the image; they don't rebuild.
+   source, build, run `instdir/program/soffice` to verify.
+2. **Distribution** (later): the Docker image from stage 4 above.
 
 This document is about #1. #2 is downstream.
 
@@ -29,11 +46,16 @@ This document is about #1. #2 is downstream.
 
 ```
 master                                ←  vanilla LibreOffice (b96243ffd)
-dev                                   ←  YOU ARE WORKING HERE (currently identical to master)
+dev                                   ←  bootstrap + docs only, vanilla build verified
+phase1/<id>-<slug>                    ←  one per Phase 1 group (forked from dev, merged back)
 chore/strip-to-writer-calc-impress    ←  earlier attempt (paused, reference only)
 refactor/apps-core-folder-split       ←  earlier attempt (paused, reference only)
 pre-strip-backup (tag)                ←  rollback safety
 ```
+
+Active working branch: `dev`. Each Phase 1 step happens on its own
+`phase1/...` subbranch and is fast-forward merged into `dev` after
+the owner reviews and approves. See §3 "Branch flow for phase work".
 
 The two "paused" branches contain prior work where the strip + folder
 restructure was attempted in one big push. That approach was abandoned
@@ -60,8 +82,8 @@ build cycle before the next change is made.
 ```
    ┌─────────────────────────────────────────────────────────┐
    │ 1. Edit source (or apply a delete)                       │
-   │ 2. make sw sc sd       — incremental build (5-30 min)    │
-   │ 3. instdir/program/soffice --writer  — smoke test         │
+   │ 2. Build (full `make` or `make sw sc sd` — §6 patterns)  │
+   │ 3. Smoke test set (headless + GUI launch — §6)           │
    │ 4. If green: commit, push                                │
    │ 5. If red: investigate / rollback, do NOT proceed         │
    │ 6. Go to 1                                               │
@@ -79,19 +101,48 @@ branches before any successful end-to-end build. When build failures
 appeared, it was unclear which commit broke what. This approach
 inverts that: build first, change second.
 
+### Branch flow for phase work
+
+Each Phase 1 group (and any future phase sub-task) lives on its own
+subbranch off `dev`. Convention: `phase<N>/<id>-<short-slug>`.
+
+```
+dev
+├── phase1/1A-peer-apps
+├── phase1/1B-language-bridges
+├── phase1/1C-mobile-platform
+├── phase1/1D-help
+├── phase1/1E-legacy-filters
+├── phase1/1F-tests-extensions
+└── phase1/1G-opencl
+```
+
+Per subbranch: agent creates the branch, applies the delete + build
+referenced cleanup, runs full `make` + the smoke test set, pushes.
+Owner reviews on GitHub, fast-forward merges into `dev`, then the
+next subbranch is forked from the updated `dev`. A subbranch that
+fails verification is discarded (`git branch -D`), not patched up
+in-place — `dev` stays clean.
+
 ---
 
 ## 4. The plan, simply stated
 
-| Phase | What | Duration | Who |
-|---|---|---|---|
-| **0** | Verify vanilla master builds on the owner's WSL setup | ~45-90 min | owner |
-| **1** | Incremental delete: ~6-8 groups of related modules, build between each | ~half day | both |
-| **2** | (Optional) folder restructure into `apps/` + `core/` | ~half day | both, only if Phase 1 stays clean |
-| **3** | Docker multi-stage build setup for distribution | ~few hours | both |
+| Phase | What | Status |
+|---|---|---|
+| **0** | Verify vanilla master builds on owner's WSL setup | ✓ done — `942e4161c` |
+| **1** | Incremental module deletions (1A–1G, build verified each) | **current** |
+| **2** | (Optional) folder restructure into `apps/` + `core/` | after 1 stays clean |
+| **3** | Writer: structured user-action logger | future |
+| **4** | Writer UI redesign (→ MS Word visual/interaction parity) | future |
+| **5** | Calc: logger + UI redesign (→ MS Excel) | future |
+| **6** | Impress: logger + UI redesign (→ MS PowerPoint) | future |
+| **7** | Docker multi-stage image for distribution | future |
 
-We are between Phase 0 and Phase 1 right now. Phase 0 must be
-"green" before Phase 1 begins.
+We are at the start of Phase 1. Phase 0 is green: vanilla build
+produces `instdir/program/soffice` and headless conversion roundtrips
+work. Each Phase 1 subbranch must stay green by the same standard
+before being merged into `dev`.
 
 ### Phase 1 — modules to delete (in suggested order)
 
@@ -105,11 +156,16 @@ From the analysis in
 | **1C** Mobile / platform | `android`, `ios`, `osx`, `apple_remote`, `winaccessibility` | Low | Target is Linux only |
 | **1D** Help system | `helpcompiler`, `xmlhelp` | Low | `--without-help` covers most |
 | **1E** Legacy filters | `hwpfilter`, `lotuswordpro` | Low | Korean HWP, Lotus formats |
-| **1F** Tests + extensions | `qadevOOo`, `smoketest`, `nlpsolver`, `librelogo`, `libreofficekit`, `remotebridges`, `uitest` | Low | Old QA + extension demos |
+| **1F** Tests + extensions | `qadevOOo`, `smoketest`, `nlpsolver`, `librelogo`, `remotebridges` | Low | Old QA + extension demos. `libreofficekit` and `uitest` **deliberately preserved** — see "Preserved for Phase 2" below. |
 | **1G** OpenCL | `opencl` | Low | Calc GPU acceleration |
 
-Each group = one commit (or a small handful), with `make sw sc sd`
-+ smoke test in between.
+Each group = one commit (or a small handful), with full `make`
++ smoke test in between. Module-level builds (`make sw sc sd`)
+are NOT sufficient here because they only verify the sw/sc/sd
+subtree — cross-module breakage in e.g. `cui`, `framework`, `oox`
+caused by a deletion would be missed. Full `make` after the
+initial Phase 0 build is fast (5-15 min incremental) because
+externals and most LinkTarget artifacts are preserved.
 
 ### Do NOT delete (verified mandatory)
 
@@ -118,6 +174,37 @@ Each group = one commit (or a small handful), with `make sw sc sd`
 
 These are linked by `sw`/`sc`/`sd` directly. Removing them requires
 patching app source code. Out of scope.
+
+### Preserved for Phase 2 (RL logger / action recording)
+
+The end goal of this fork is an RL agent runtime. Phase 2 will
+add structured logging of user actions and a UI redesign to
+mimic MS Office. Two modules originally listed under 1F are
+preserved because the next phase may build on them:
+
+- `libreofficekit` (LOK) — C/C++ embedding API with rendering
+  and document-state callbacks. Used by Online and Mobile
+  clients. Plausible foundation for an RL agent's observation
+  channel (current doc state, render output).
+- `uitest` — Python-driven UI automation framework. Can locate
+  widgets by name and drive clicks/typing. Plausible foundation
+  for an RL agent's action interface.
+
+Both will be re-evaluated when Phase 2 begins. Until then, do
+not delete and do not refactor them out.
+
+### Existing event / logger infrastructure (reference for Phase 2)
+
+The hook points already in LibreOffice that Phase 2 logging
+work may build on:
+
+| Mechanism | Location | Role |
+|---|---|---|
+| `SfxDispatcher` / `SfxRequest` | `sfx2/source/control/dispatch.cxx` | Every menu/toolbar action flows through here as a slot dispatch. Primary hook candidate. |
+| `XDispatchProvider` / `XStatusListener` | `framework/source/dispatch/` | UNO command dispatch layer with interceptor pattern; stable API for third-party listeners. |
+| Macro recorder (`DispatchRecorder`) | `framework/source/services/dispatchrecorder.cxx` | Already records user actions as BASIC code. Pipeline can be repurposed for a structured (JSON) event log. |
+| VCL event listeners | `vcl/source/window/` | Lower-level: keystrokes, mouse, focus. Use only if `SfxDispatcher` granularity is insufficient. |
+| `SAL_INFO` / `SAL_WARN` | `sal/log.hxx` | Compile-time debug logging only. **Not** suitable for runtime user-action log. |
 
 ---
 
@@ -210,15 +297,59 @@ If the build hits `OGLTrans` link errors, add `--disable-opengl`.
 If the build hits `helplinker` errors when modules referencing
 XMLHELP are involved, add `--disable-xmlhelp`.
 
-### Iteration after Phase 0
+### Iteration patterns after Phase 0
+
+Two patterns depending on what changed:
+
+**Pattern A — edits scoped to sw/sc/sd source** (UI tweaks, app-side
+changes, slot handlers): `make sw sc sd` is sufficient because the
+edit cannot affect build artifacts outside that subtree.
 
 ```sh
-git pull origin dev          # get latest changes
-make sw sc sd                # incremental build (~5-30 min depending on scope)
-instdir/program/soffice --writer    # smoke test
+git pull origin dev
+make sw sc sd                # 5-30 min depending on scope
+instdir/program/soffice --writer    # GUI smoke (or use headless set below)
+```
+
+**Pattern B — phase work (deletions, build-system / cross-module
+changes)**: use full `make` because breakage can surface anywhere
+in the tree, not just sw/sc/sd.
+
+```sh
+git checkout -b phase1/1X-... dev
+# delete modules + clean Repository.mk / RepositoryModule_host.mk / etc.
+make 2>&1 | tee build.log     # 5-15 min incremental
+# smoke test set (below)
+git push -u origin phase1/1X-...
+# owner reviews + merges into dev
+```
+
+### Smoke test set (used between phase groups)
+
+Verifies that the binary is still launchable AND that the filter
+stack still functions. Both layers needed — opening confirms
+runtime init, conversion confirms filters didn't break.
+
+```sh
+# Headless filter check — each app's converter
+echo "smoke" > /tmp/t.txt
+instdir/program/soffice --headless --convert-to pdf /tmp/t.txt --outdir /tmp
+file /tmp/t.pdf   # expect: PDF document, version 1.x
+
+# Real-format roundtrip — DOCX/XLSX/PPTX import → PDF
+# (use a small fixture file once we have one in the repo)
+# instdir/program/soffice --headless --convert-to pdf fixture.docx --outdir /tmp
+
+# GUI launch — owner-only, needs WSLg/X11
+instdir/program/soffice --writer    # blank doc opens, close
 instdir/program/soffice --calc
 instdir/program/soffice --impress
 ```
+
+Opening without crash = process init + VCL/cairo/SFX2 alive.
+Headless conversion success = filter pipeline alive. Together
+they cover module-deletion verification. Full CppUnit / UITest
+runs are deferred to Phase 2 logger work.
 
 ### When `make` insists on re-running autogen
 
@@ -335,8 +466,20 @@ docs(architecture): document apps vs core split
 1. **NTFS slowness via WSL**: build from `/home/$USER/`, not `/mnt/c/`.
 2. **Stale workdir after big changes**: if cross-module changes
    produce strange "missing library" errors, `rm -rf workdir/{LinkTarget,CxxObject,Dep,CObject}` and rebuild. Externals (`workdir/UnpackedTarball/`) survive.
-3. **Pre-commit hook fails to spawn** on Windows MSYS git: replace
-   symlinks in `.git/hooks/` with real copies of files in `.git-hooks/`.
+3. **Git hooks fail to spawn** on Windows MSYS git. The repo ships
+   `.git/hooks/{pre-commit,commit-msg,post-merge}` as symlinks
+   pointing to absolute Windows paths under `.git-hooks/`. MSYS git
+   cannot follow them and aborts every commit. Workaround — for
+   each affected hook, replace the symlink with a real copy:
+   ```sh
+   for h in pre-commit commit-msg post-merge; do
+       rm ".git/hooks/$h"
+       cp ".git-hooks/$h" ".git/hooks/$h"
+       chmod +x ".git/hooks/$h"
+   done
+   ```
+   This is per-clone (the `.git/` dir is not tracked), so each
+   fresh clone repeats the fix once.
 4. **Configure may detect WSL as "Windows-as-helper" build** if
    `$WSL_DISTRO_NAME` is set AND PATH contains `mingw64` (from git-bash
    forwarding). Workaround: clean PATH inside WSL bash:
