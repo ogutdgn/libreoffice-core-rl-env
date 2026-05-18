@@ -107,9 +107,12 @@ void writeKeyFields(std::ostringstream& os, const KeyEvent* k)
 {
     if (!k) { os << R"("fields":{})"; return; }
     const vcl::KeyCode& kc = k->GetKeyCode();
+    // GetCharCode returns sal_uInt16 == char16_t; stream insertion for
+    // char16_t is deleted in C++17, so widen to unsigned for the JSON
+    // numeric field.
     os << R"("fields":{)"
-       << R"("keyCode":)" << kc.GetCode() << ','
-       << R"("char":)" << k->GetCharCode() << ','
+       << R"("keyCode":)" << static_cast<unsigned>(kc.GetCode()) << ','
+       << R"("char":)" << static_cast<unsigned>(k->GetCharCode()) << ','
        << R"("repeat":)" << (k->GetRepeat() ? "true" : "false")
        << '}';
 }
