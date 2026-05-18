@@ -8,6 +8,7 @@
  */
 
 #include <RawCapture.hxx>
+#include <RecentRaw.hxx>
 #include <SemanticEmitter.hxx>
 
 #include <atomic>
@@ -20,6 +21,7 @@
 #include <vcl/vclevent.hxx>
 #include <vcl/event.hxx>
 #include <vcl/window.hxx>
+#include <vcl/wintypes.hxx>
 #include <vcl/commandevent.hxx>
 #include <tools/link.hxx>
 #include <rtl/ustring.hxx>
@@ -33,6 +35,12 @@ std::ofstream g_stream;
 std::atomic<uint64_t> g_seq{0};
 std::chrono::steady_clock::time_point g_sessionStart;
 Link<VclSimpleEvent&, void> g_listenerLink;
+
+// Snapshot of the most recent raw event. Read by the semantic emitter
+// at recordDispatch time to attribute the dispatch to a UI trigger.
+// Both writer and reader run on the main thread under SolarMutex, so
+// no lock is needed.
+RecentRawSnapshot g_lastRaw;
 
 // JSON string escape. Input is treated as UTF-8 (the LO convention via
 // OUStringToOString). Only control bytes (< 0x20) and JSON's two
@@ -94,6 +102,46 @@ const char* nameForEventId(VclEventId id)
         case VclEventId::WindowGestureEvent:    return "gesture";
         default:                                return nullptr;
     }
+}
+
+LastRawType lastRawTypeForEventId(VclEventId id)
+{
+    switch (id)
+    {
+        case VclEventId::WindowKeyInput:        return LastRawType::KeyDown;
+        case VclEventId::WindowKeyUp:           return LastRawType::KeyUp;
+        case VclEventId::WindowMouseButtonDown: return LastRawType::MouseDown;
+        case VclEventId::WindowMouseButtonUp:   return LastRawType::MouseUp;
+        case VclEventId::WindowMouseMove:       return LastRawType::MouseMove;
+        case VclEventId::WindowGetFocus:        return LastRawType::FocusIn;
+        case VclEventId::WindowLoseFocus:       return LastRawType::FocusOut;
+        case VclEventId::WindowCommand:         return LastRawType::Command;
+        case VclEventId::WindowGestureEvent:    return LastRawType::Gesture;
+        default:                                return LastRawType::None;
+    }
+}
+
+// Walk up the parent chain looking for a classifiable container. The
+// click target is often a deep child (a Button inside a ToolBox, or
+// the menu-item rendering window inside a MenuBarWindow); the
+// enclosing widget is what tells us "this came from a toolbar".
+TargetWidget classifyWidget(vcl::Window* w)
+{
+    for (vcl::Window* cur = w; cur != nullptr; cur = cur->GetParent())
+    {
+        switch (cur->GetType())
+        {
+            case WindowType::TOOLBOX:
+                return TargetWidget::Toolbar;
+            case WindowType::MENUBARWINDOW:
+                return TargetWidget::MenuBar;
+            case WindowType::FLOATINGWINDOW:
+                return TargetWidget::FloatingMenu;
+            default:
+                break;
+        }
+    }
+    return w ? TargetWidget::Document : TargetWidget::Unknown;
 }
 
 // Returns the time since session start, in milliseconds.
@@ -220,9 +268,26 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     const std::string line = os.str();
     g_stream << line;
     g_stream.flush();
+
+    // Update the recent-raw snapshot for the semantic emitter's
+    // trigger heuristic. Skip mouse.move — moves between gestures
+    // would clobber the click/key that actually triggered the
+    // pending dispatch.
+    if (id != VclEventId::WindowMouseMove)
+    {
+        g_lastRaw.type = lastRawTypeForEventId(id);
+        g_lastRaw.widget = classifyWidget(pWindow);
+        g_lastRaw.timestampMs = wallTimeMs();
+        g_lastRaw.hasModifier = (mods & (KEY_SHIFT | KEY_MOD1 | KEY_MOD2 | KEY_MOD3)) != 0;
+    }
 }
 
 } // namespace
+
+RecentRawSnapshot getLastRaw()
+{
+    return g_lastRaw;
+}
 
 void install(const std::filesystem::path& sessionDir)
 {

@@ -9,6 +9,9 @@
 
 #include <SemanticEmitter.hxx>
 
+#include <CommandMap.hxx>
+#include <RecentRaw.hxx>
+
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -16,6 +19,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/document/DocumentEvent.hpp>
@@ -93,6 +97,42 @@ uint64_t wallTimeMs()
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
+// Map the most recent raw event onto a coarse trigger label. Reads
+// the snapshot maintained by RawCapture. The 500 ms staleness gate
+// keeps dispatches that arrive long after any UI input — typically
+// macro / scripting calls — labelled as `programmatic`.
+std::string_view detectTrigger(uint64_t nowMs)
+{
+    const raw::RecentRawSnapshot s = raw::getLastRaw();
+    using LR = raw::LastRawType;
+    using TW = raw::TargetWidget;
+
+    if (s.type == LR::None) return "programmatic";
+    if (nowMs > s.timestampMs && nowMs - s.timestampMs > 500)
+        return "programmatic";
+
+    switch (s.type)
+    {
+        case LR::KeyDown:
+        case LR::KeyUp:
+            return "shortcut";
+        case LR::MouseDown:
+        case LR::MouseUp:
+            switch (s.widget)
+            {
+                case TW::Toolbar:      return "toolbar";
+                case TW::MenuBar:      return "menu";
+                case TW::FloatingMenu: return "menu";
+                case TW::Document:     return "click";
+                default:               return "click";
+            }
+        case LR::Command:
+            return "menu"; // typically a context-menu or wheel command
+        default:
+            return "unknown";
+    }
+}
+
 void writeLine(const std::string& line)
 {
     std::lock_guard<std::mutex> lock(g_streamMutex);
@@ -144,13 +184,22 @@ public:
     void SAL_CALL recordDispatch(const util::URL& aURL,
                                  const uno::Sequence<beans::PropertyValue>& lArguments) override
     {
+        const uint64_t nowMs = wallTimeMs();
+        const OString rawUrlUtf8 = OUStringToOString(aURL.Complete, RTL_TEXTENCODING_UTF8);
+        const std::string_view rawUrl(rawUrlUtf8.getStr(), rawUrlUtf8.getLength());
+        const std::string_view mapped = mapCommand(rawUrl);
+        const std::string_view name = mapped.empty() ? rawUrl : mapped;
+        const std::string_view trigger = detectTrigger(nowMs);
+
         std::ostringstream os;
         os << '{'
            << R"("schemaVersion":1,)"
            << R"("eventId":"sem-)" << g_seq.fetch_add(1) << R"(",)"
-           << R"("timestamp":)" << wallTimeMs() << ','
+           << R"("timestamp":)" << nowMs << ','
            << R"("documentUrl":")" << escapeOUString(m_documentUrl) << R"(",)"
-           << R"("name":")" << escapeOUString(aURL.Complete) << R"(",)"
+           << R"("name":")" << escapeJson(name) << R"(",)"
+           << R"("rawName":")" << escapeJson(rawUrl) << R"(",)"
+           << R"("trigger":")" << trigger << R"(",)"
            << R"("argCount":)" << lArguments.getLength()
            << '}';
         writeLine(os.str());

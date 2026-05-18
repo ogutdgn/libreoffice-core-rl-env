@@ -27,6 +27,7 @@ $(eval $(call gb_Library_use_libraries,rllogger,\
 
 $(eval $(call gb_Library_add_exception_objects,rllogger,\
     rllogger/source/rllogger \
+    rllogger/source/CommandMap \
     rllogger/source/RawCapture \
     rllogger/source/SemanticEmitter \
 ))
