@@ -131,18 +131,31 @@ in-place — `dev` stays clean.
 | Phase | What | Status |
 |---|---|---|
 | **0** | Verify vanilla master builds on owner's WSL setup | ✓ done — `942e4161c` |
-| **1** | Incremental module deletions (1A–1G, build verified each) | **current** |
-| **2** | (Optional) folder restructure into `apps/` + `core/` | after 1 stays clean |
-| **3** | Writer: structured user-action logger | future |
+| **1** | Incremental module deletions (1A–1G, build verified each) | ✓ done — `d38f631d4` |
+| **2** | (Optional) folder restructure into `apps/` + `core/` | **cancelled — see note below** |
+| **3** | Writer: structured user-action logger | **current** |
 | **4** | Writer UI redesign (→ MS Word visual/interaction parity) | future |
 | **5** | Calc: logger + UI redesign (→ MS Excel) | future |
 | **6** | Impress: logger + UI redesign (→ MS PowerPoint) | future |
 | **7** | Docker multi-stage image for distribution | future |
 
-We are at the start of Phase 1. Phase 0 is green: vanilla build
-produces `instdir/program/soffice` and headless conversion roundtrips
-work. Each Phase 1 subbranch must stay green by the same standard
-before being merged into `dev`.
+Phase 2 was attempted on a side branch (`phase2/apps-core-split`):
+the apps/ part (move `sw, sc, sd` to `apps/`) was successfully done
+and green-built, but the work was then dropped without merging.
+Reasoning: the fork is only consumed downstream as a Docker image
+containing the **built** `instdir/`, so source-tree cosmetics don't
+ship to RL agents. The only beneficiary of a restructure is us as
+developers — and even there, the cost (cross-module path rewrites,
+divergence from vanilla LibreOffice layout that all upstream docs
+assume, hybrid half-moved states during the transition) outweighed
+the day-to-day cognitive win. Vanilla layout stays. The
+`phase2/apps-core-split` branch and the older
+`refactor/apps-core-folder-split` branch both document the mechanism
+(`gb_Module_MODULELOCATIONS`) if a future Phase decides to revisit.
+
+We are now at the start of Phase 3. Phase 0 and Phase 1 are green:
+vanilla build (with the 7 module-deletion groups applied) produces
+`instdir/program/soffice` and headless conversion roundtrips work.
 
 ### Phase 1 — modules to delete (in suggested order)
 
