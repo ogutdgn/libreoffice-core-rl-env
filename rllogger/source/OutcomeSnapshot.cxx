@@ -214,7 +214,7 @@ void buildAndWrite()
     }
 }
 
-void onTick(Timer* /*pTimer*/)
+void onTick(void* /*pThis*/, Timer* /*pTimer*/)
 {
     buildAndWrite();
 }
