@@ -638,6 +638,7 @@ $(eval $(call gb_Helper_register_libraries_for_install,PLAINLIBS_OOO,ooo, \
         $(if $(ENABLE_QT6_MULTIMEDIA),avmediaqt6) \
         $(if $(filter WNT,$(OS)),avmediawin) \
     ) \
+	rllogger \
 	cached1 \
 	comphelper \
 	$(call gb_Helper_optional,DBCONNECTIVITY,dbpool2) \

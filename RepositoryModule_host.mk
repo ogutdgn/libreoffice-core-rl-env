@@ -90,6 +90,7 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	postprocess \
 	readlicense_oo \
 	registry \
+	rllogger \
 	sal \
 	salhelper \
 	sax \
