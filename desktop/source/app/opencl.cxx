@@ -36,8 +36,8 @@
 
 #if HAVE_FEATURE_OPENCL
 #include <opencl/openclwrapper.hxx>
-#endif
 #include <opencl/OpenCLZone.hxx>
+#endif
 
 #include <osl/file.hxx>
 #include <osl/process.h>
