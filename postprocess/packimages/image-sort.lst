@@ -200,9 +200,6 @@ modules/simpress/toolbar/textobjectbar.xml
 modules/simpress/toolbar/toolbar.xml
 modules/simpress/toolbar/viewerbar.xml
 modules/simpress/toolbar/zoombar.xml
-modules/smath/toolbar/fullscreenbar.xml
-modules/smath/toolbar/standardbar.xml
-modules/smath/toolbar/toolbar.xml
 modules/sglobal/toolbar/alignmentbar.xml
 modules/sglobal/toolbar/arrowshapes.xml
 modules/sglobal/toolbar/basicshapes.xml
@@ -321,7 +318,6 @@ modules/schart/menubar/menubar.xml
 modules/scalc/menubar/menubar.xml
 modules/sdraw/menubar/menubar.xml
 modules/simpress/menubar/menubar.xml
-modules/smath/menubar/menubar.xml
 modules/sglobal/menubar/menubar.xml
 modules/sweb/menubar/menubar.xml
 modules/swriter/menubar/menubar.xml

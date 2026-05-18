@@ -19,7 +19,6 @@ postprocess_MOD := $(call gb_XcuModuleTarget_get_target,officecfg/registry/data)
 postprocess_DRIVERS :=
 
 postprocess_XCDS := \
-	base.xcd \
 	calc.xcd \
 	cjk.xcd \
 	ctl.xcd \
@@ -29,22 +28,11 @@ postprocess_XCDS := \
 	impress.xcd \
 	lingucomponent.xcd \
 	main.xcd \
-	math.xcd \
 	writer.xcd \
 	$(if $(filter EMSCRIPTEN,$(OS)), \
 	    static.xcd \
 	) \
 	xsltfilter.xcd
-
-postprocess_DEPS_base := main
-postprocess_FILES_base := \
-	$(if $(ENABLE_WASM_STRIP_DBACCESS),, \
-	    $(call gb_XcuFilterFiltersTarget_get_target,fcfg_database_filters.xcu) \
-	    $(call gb_XcuFilterOthersTarget_get_target,fcfg_database_others.xcu) \
-	    $(call gb_XcuFilterTypesTarget_get_target,fcfg_database_types.xcu)) \
-	$(postprocess_MOD)/org/openoffice/Office/Common-base.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/Embedding-base.xcu \
-	$(postprocess_MOD)/org/openoffice/Setup-base.xcu
 
 postprocess_DEPS_calc := main
 postprocess_FILES_calc := \
@@ -272,7 +260,6 @@ postprocess_FILES_main := \
 	$(postprocess_MOD)/org/openoffice/TypeDetection/UISort-calc.xcu \
 	$(postprocess_MOD)/org/openoffice/TypeDetection/UISort-draw.xcu \
 	$(postprocess_MOD)/org/openoffice/TypeDetection/UISort-impress.xcu \
-	$(postprocess_MOD)/org/openoffice/TypeDetection/UISort-math.xcu \
 	$(postprocess_MOD)/org/openoffice/TypeDetection/UISort-writer.xcu
 
 ifeq (MACOSX,$(OS))
@@ -336,39 +323,6 @@ postprocess_FILES_main += \
 	$(postprocess_MOD)/org/openoffice/Office/Common-32bit.xcu
 endif
 
-postprocess_DEPS_math := main
-postprocess_FILES_math := \
-	$(postprocess_XCS)/Office/UI/MathCommands.xcs \
-	$(postprocess_XCS)/Office/UI/MathWindowState.xcs \
-	$(if $(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS),, \
-	    $(postprocess_XCU)/Office/UI/MathCommands.xcu \
-	    $(postprocess_XCU)/Office/UI/MathWindowState.xcu \
-	    $(call gb_XcuFilterFiltersTarget_get_target,fcfg_math_filters.xcu) \
-	    $(call gb_XcuFilterTypesTarget_get_target,fcfg_math_types.xcu)) \
-	$(postprocess_MOD)/org/openoffice/Office/Common-math.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/Embedding-math.xcu \
-	$(postprocess_MOD)/org/openoffice/Setup-math.xcu
-
-ifeq ($(ENABLE_REPORTBUILDER),TRUE)
-postprocess_XCDS += reportbuilder.xcd
-postprocess_DEPS_reportbuilder := main
-postprocess_FILES_reportbuilder := \
-	$(postprocess_XCS)/Office/ReportDesign.xcs \
-	$(postprocess_XCS)/Office/UI/DbReportWindowState.xcs \
-	$(postprocess_XCS)/Office/UI/ReportCommands.xcs \
-	$(postprocess_XCU)/Office/ExtendedColorScheme.xcu \
-	$(postprocess_XCU)/Office/ReportDesign.xcu \
-	$(postprocess_XCU)/Office/UI/DbReportWindowState.xcu \
-	$(postprocess_XCU)/Office/UI/ReportCommands.xcu \
-	$(call gb_XcuFilterFiltersTarget_get_target,fcfg_reportbuilder_filters.xcu) \
-	$(call gb_XcuFilterTypesTarget_get_target,fcfg_reportbuilder_types.xcu) \
-	$(postprocess_MOD)/org/openoffice/Setup-reportbuilder.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/Accelerators-reportbuilder.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/DataAccess-reportbuilder.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/Embedding-reportbuilder.xcu \
-	$(postprocess_MOD)/org/openoffice/Office/UI/Controller-reportbuilder.xcu
-endif
-
 postprocess_DEPS_writer := main
 postprocess_FILES_writer := \
 	$(postprocess_XCS)/Office/UI/WriterCommands.xcs \
@@ -426,17 +380,6 @@ postprocess_DEPS_ogltrans := main
 postprocess_FILES_ogltrans := \
 	$(postprocess_MOD)/org/openoffice/Office/Impress-ogltrans.xcu
 
-ifeq ($(ENABLE_PDFIMPORT),TRUE)
-postprocess_XCDS += pdfimport.xcd
-postprocess_OPTDEPS_pdfimport := calc draw impress math writer
-	# HACK: for all fcfg_X_types.xcu in filter/Configuration_filter.mk that
-	# include pdf_Portable_Document_Format (i.e., X in calc, draw, global,
-	# impress, math, web, writer), add optional dependencies on those XCDS that
-	# include those fcfg_X_types.xcu
-postprocess_FILES_pdfimport := \
-	$(SRCDIR)/sdext/source/pdfimport/config/pdf_import_filter.xcu \
-	$(SRCDIR)/sdext/source/pdfimport/config/pdf_types.xcu
-endif
 
 #
 # All DBCONNECTIVITY handling (including OS specifics!)

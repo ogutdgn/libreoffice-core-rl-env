@@ -35,12 +35,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 ))
 endif
 
-ifneq ($(ENABLE_WASM_STRIP_DBACCESS),TRUE)
-$(eval $(call gb_Module_add_moduledirs,libreoffice,\
-	dbaccess \
-))
-endif
-
 ifneq ($(ENABLE_WASM_STRIP_ACCESSIBILITY),TRUE)
 $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	winaccessibility \
@@ -54,9 +48,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
     ) \
 	apple_remote \
 	avmedia \
-	$(if $(ENABLE_WASM_STRIP_CALC),, \
-	basctl \
-	) \
 	basegfx \
 	basic \
 	bean \
@@ -83,7 +74,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	external \
 	extras \
 	filter \
-	$(call gb_Helper_optional,DBCONNECTIVITY,forms) \
 	formula \
 	$(call gb_Helper_optional,DESKTOP,fpicker) \
 	framework \
@@ -124,8 +114,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	readlicense_oo \
 	registry \
 	remotebridges \
-	reportbuilder \
-	$(call gb_Helper_optional,DBCONNECTIVITY,reportdesign) \
 	ridljar \
 	rust_uno \
 	sal \
@@ -140,7 +128,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	scripting \
     $(if $(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS),, \
 	sd \
-	sdext \
     ) \
 	$(call gb_Helper_optional,DESKTOP,setup_native) \
 	sfx2 \
@@ -152,9 +139,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	solenv \
 	soltools \
 	sot \
-    $(if $(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS),, \
-	starmath \
-    ) \
     $(if $(ENABLE_CUSTOMTARGET_COMPONENTS),static) \
 	stoc \
 	store \
@@ -165,7 +149,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	svx \
 	$(if $(ENABLE_WASM_STRIP_WRITER),, \
 	sw \
-	swext \
 	) \
 	sysui \
 	test \
@@ -232,7 +215,6 @@ $(eval $(call repositorymodule_serialize,\
 	sw \
 	$(if $(MERGELIBS_MORE),, \
 		sd \
-		$(call gb_Helper_optional,DBCONNECTIVITY,dbu) \
 		cui) \
 	$(if $(MERGELIBS), merged, \
 		chart2 oox svx svxcore xo sfx fwk svt vcl) \
