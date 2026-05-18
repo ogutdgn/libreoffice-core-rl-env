@@ -270,15 +270,24 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     g_stream.flush();
 
     // Update the recent-raw snapshot for the semantic emitter's
-    // trigger heuristic. Skip mouse.move — moves between gestures
-    // would clobber the click/key that actually triggered the
-    // pending dispatch.
-    if (id != VclEventId::WindowMouseMove)
+    // trigger heuristic. Only key / mouse-button events count —
+    // mouse.move is noise; command / focus / gesture events fire
+    // between a keystroke and its SfxDispatcher dispatch (IME, wheel
+    // autoscroll, focus shuffles) and would mislabel keyboard
+    // shortcuts as `menu`.
+    switch (id)
     {
-        g_lastRaw.type = lastRawTypeForEventId(id);
-        g_lastRaw.widget = classifyWidget(pWindow);
-        g_lastRaw.timestampMs = wallTimeMs();
-        g_lastRaw.hasModifier = (mods & (KEY_SHIFT | KEY_MOD1 | KEY_MOD2 | KEY_MOD3)) != 0;
+        case VclEventId::WindowKeyInput:
+        case VclEventId::WindowKeyUp:
+        case VclEventId::WindowMouseButtonDown:
+        case VclEventId::WindowMouseButtonUp:
+            g_lastRaw.type = lastRawTypeForEventId(id);
+            g_lastRaw.widget = classifyWidget(pWindow);
+            g_lastRaw.timestampMs = wallTimeMs();
+            g_lastRaw.hasModifier = (mods & (KEY_SHIFT | KEY_MOD1 | KEY_MOD2 | KEY_MOD3)) != 0;
+            break;
+        default:
+            break;
     }
 }
 

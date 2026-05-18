@@ -126,8 +126,6 @@ std::string_view detectTrigger(uint64_t nowMs)
                 case TW::Document:     return "click";
                 default:               return "click";
             }
-        case LR::Command:
-            return "menu"; // typically a context-menu or wheel command
         default:
             return "unknown";
     }
