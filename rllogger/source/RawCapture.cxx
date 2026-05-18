@@ -42,6 +42,15 @@ Link<VclSimpleEvent&, void> g_listenerLink;
 // no lock is needed.
 RecentRawSnapshot g_lastRaw;
 
+// Gesture window tracker. g_pressedCount goes 0 → 1 on the first
+// press of a gesture; g_gestureStartId is captured at that moment.
+// g_lastNonMoveId is bumped on every non-move event. See
+// PHASE3_LOGGER_DESIGN.md §2.2 "rawEventIdRange" for the contract.
+uint64_t g_gestureStartId = 0;
+uint64_t g_lastNonMoveId = 0;
+uint32_t g_pressedCount = 0;
+bool g_gestureValid = false;
+
 // JSON string escape. Input is treated as UTF-8 (the LO convention via
 // OUStringToOString). Only control bytes (< 0x20) and JSON's two
 // mandatory escapes (quote, backslash) get \uXXXX / \\X treatment.
@@ -229,9 +238,11 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     void* pData = w ? w->GetData() : nullptr;
     vcl::Window* pWindow = w ? w->GetWindow() : nullptr;
 
+    const uint64_t thisId = g_seq.fetch_add(1);
+
     std::ostringstream os;
     os << '{'
-       << R"("eventId":"raw-)" << g_seq.fetch_add(1) << R"(",)"
+       << R"("eventId":"raw-)" << thisId << R"(",)"
        << R"("type":")" << eventName << R"(",)"
        << R"("timestamp":)" << wallTimeMs() << ','
        << R"("sessionTime":)" << sessionTimeMs() << ',';
@@ -280,15 +291,41 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     switch (id)
     {
         case VclEventId::WindowKeyInput:
-        case VclEventId::WindowKeyUp:
         case VclEventId::WindowMouseButtonDown:
-        case VclEventId::WindowMouseButtonUp:
+            // Press. New gesture starts iff nothing was held before.
+            if (g_pressedCount == 0)
+            {
+                g_gestureStartId = thisId;
+                g_gestureValid = true;
+            }
+            ++g_pressedCount;
+            g_lastNonMoveId = thisId;
             g_lastRaw.type = lastRawTypeForEventId(id);
             g_lastRaw.widget = classifyWidget(pWindow);
             g_lastRaw.timestampMs = wallTimeMs();
             g_lastRaw.hasModifier = (mods & (KEY_SHIFT | KEY_MOD1 | KEY_MOD2 | KEY_MOD3)) != 0;
             break;
+        case VclEventId::WindowKeyUp:
+        case VclEventId::WindowMouseButtonUp:
+            // Release. Don't drop g_pressedCount below 0 — VCL can
+            // synthesize a release without a matching down (e.g. when
+            // a key is pressed before our listener was installed).
+            if (g_pressedCount > 0) --g_pressedCount;
+            g_lastNonMoveId = thisId;
+            g_lastRaw.type = lastRawTypeForEventId(id);
+            g_lastRaw.widget = classifyWidget(pWindow);
+            g_lastRaw.timestampMs = wallTimeMs();
+            g_lastRaw.hasModifier = (mods & (KEY_SHIFT | KEY_MOD1 | KEY_MOD2 | KEY_MOD3)) != 0;
+            break;
+        case VclEventId::WindowMouseMove:
+            // Pure noise for the gesture window — skip.
+            break;
         default:
+            // Focus / command / gesture events extend the current
+            // gesture's last-id marker (so dispatches between them
+            // and the next press still get a sensible range) but
+            // don't start one.
+            g_lastNonMoveId = thisId;
             break;
     }
 }
@@ -298,6 +335,15 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
 RecentRawSnapshot getLastRaw()
 {
     return g_lastRaw;
+}
+
+GestureRange getGestureRange()
+{
+    GestureRange r;
+    r.valid = g_gestureValid;
+    r.firstId = g_gestureStartId;
+    r.lastId = g_lastNonMoveId;
+    return r;
 }
 
 void install(const std::filesystem::path& /*sessionDir*/)

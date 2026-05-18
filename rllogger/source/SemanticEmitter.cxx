@@ -178,6 +178,7 @@ public:
         const std::string_view mapped = mapCommand(rawUrl);
         const std::string_view name = mapped.empty() ? rawUrl : mapped;
         const std::string_view trigger = detectTrigger(nowMs);
+        const raw::GestureRange gesture = raw::getGestureRange();
 
         std::ostringstream os;
         os << '{'
@@ -187,8 +188,13 @@ public:
            << R"("documentUrl":")" << escapeOUString(m_documentUrl) << R"(",)"
            << R"("name":")" << escapeJson(name) << R"(",)"
            << R"("rawName":")" << escapeJson(rawUrl) << R"(",)"
-           << R"("trigger":")" << trigger << R"(",)"
-           << R"("argCount":)" << lArguments.getLength()
+           << R"("trigger":")" << trigger << R"(",)";
+        if (gesture.valid)
+        {
+            os << R"("rawEventIdRange":["raw-)" << gesture.firstId
+               << R"(","raw-)" << gesture.lastId << R"("],)";
+        }
+        os << R"("argCount":)" << lArguments.getLength()
            << '}';
         persist::enqueueSemantic(os.str());
     }

@@ -50,6 +50,22 @@ struct RecentRawSnapshot
 // because both producer and consumer hold SolarMutex.
 RecentRawSnapshot getLastRaw();
 
+// Gesture window: [firstId, lastId] over raw event sequence numbers.
+// `valid` is false until the first key/mouse press lands. A gesture
+// is the span from a press observed while no keys/buttons were held
+// down, through every non-mouse-move event up to the moment a caller
+// reads it. Multiple semantic events from the same gesture share the
+// same firstId — the start marker only advances when a new gesture
+// begins.
+struct GestureRange
+{
+    bool valid = false;
+    uint64_t firstId = 0;
+    uint64_t lastId = 0;
+};
+
+GestureRange getGestureRange();
+
 } // namespace rllogger::raw
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */
