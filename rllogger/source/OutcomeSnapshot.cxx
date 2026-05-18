@@ -247,6 +247,17 @@ void retryStart()
     }
 }
 
+void flushFinal()
+{
+    if (!g_installed) return;
+    // The AutoTimer may have been disposed earlier in the VCL
+    // teardown sequence; build the snapshot directly. buildAndWrite()
+    // already wraps every UNO call in try/catch, so a half-torn-down
+    // service manager produces an empty snapshot instead of a crash.
+    if (g_timer) g_timer->Stop();
+    buildAndWrite();
+}
+
 } // namespace rllogger::outcome
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

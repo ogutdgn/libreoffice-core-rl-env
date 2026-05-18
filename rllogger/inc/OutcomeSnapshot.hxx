@@ -25,6 +25,11 @@ void install(const std::filesystem::path& sessionDir);
 // rest become atomic-load no-ops.
 void retryStart();
 
+// Build and write one final snapshot, ignoring the timer. Called by
+// the session shutdown handler so outcome.jsonl reflects the actual
+// closing document state rather than the last periodic tick.
+void flushFinal();
+
 } // namespace rllogger::outcome
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

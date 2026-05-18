@@ -117,7 +117,9 @@ void install(const std::filesystem::path& sessionDir)
     }
 
     g_thread = std::thread(writerLoop);
-    std::atexit([] { shutdown(); });
+    // Note: no std::atexit registration here — the orchestration is
+    // owned by rllogger::initialize() which sequences session_end +
+    // final outcome flush + persist::shutdown() in one place.
 }
 
 void enqueueRaw(std::string line)

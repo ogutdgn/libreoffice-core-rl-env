@@ -20,6 +20,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -36,6 +37,35 @@ namespace {
 bool g_active = false;
 std::filesystem::path g_sessionDir;
 std::string g_sessionId;
+uint64_t g_sessionStartWallMs = 0;
+
+uint64_t wallTimeMs()
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+// Minimal JSON escape for the few session fields we emit (session id,
+// directory path). The raw / semantic emitters have their own escapers;
+// duplicating a small one here avoids pulling in a shared module just
+// for two callsites.
+std::string escapeAscii(std::string_view s)
+{
+    std::string out;
+    out.reserve(s.size() + 2);
+    for (const unsigned char c : s)
+    {
+        switch (c)
+        {
+            case '"':  out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            default:
+                if (c < 0x20) { out += ' '; }
+                else { out += static_cast<char>(c); }
+        }
+    }
+    return out;
+}
 
 std::string makeSessionId()
 {
@@ -67,6 +97,51 @@ void touchEmptyFile(const std::filesystem::path& p)
 {
     std::ofstream ofs(p, std::ios::app);
     // Just opening for append is enough to create an empty file; close on scope exit.
+}
+
+void emitSessionStart()
+{
+    std::ostringstream os;
+    os << '{'
+       << R"("schemaVersion":1,)"
+       << R"("eventId":"sem-session-start",)"
+       << R"("kind":"lifecycle",)"
+       << R"("name":"session_start",)"
+       << R"("timestamp":)" << g_sessionStartWallMs << ','
+       << R"("sessionId":")" << escapeAscii(g_sessionId) << R"(",)"
+       << R"("sessionDir":")" << escapeAscii(g_sessionDir.generic_string()) << R"(")"
+       << '}';
+    persist::enqueueSemantic(os.str());
+}
+
+void emitSessionEnd()
+{
+    const uint64_t nowMs = wallTimeMs();
+    std::ostringstream os;
+    os << '{'
+       << R"("schemaVersion":1,)"
+       << R"("eventId":"sem-session-end",)"
+       << R"("kind":"lifecycle",)"
+       << R"("name":"session_end",)"
+       << R"("timestamp":)" << nowMs << ','
+       << R"("durationMs":)" << (nowMs - g_sessionStartWallMs) << ','
+       << R"("sessionId":")" << escapeAscii(g_sessionId) << R"(")"
+       << '}';
+    persist::enqueueSemantic(os.str());
+}
+
+void onAtexit()
+{
+    if (!g_active) return;
+    emitSessionEnd();
+    // One last document-state snapshot so outcome.jsonl reflects the
+    // final state instead of the last 250 ms tick.
+    outcome::flushFinal();
+    // Drain the queues and join the writer thread. Subsequent
+    // enqueueRaw / enqueueSemantic become silent no-ops, so any VCL
+    // events still in flight after this point are quietly dropped.
+    persist::shutdown();
+    g_active = false;
 }
 
 } // namespace
@@ -110,6 +185,7 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     touchEmptyFile(g_sessionDir / "outcome.jsonl");
 
     g_active = true;
+    g_sessionStartWallMs = wallTimeMs();
 
     // Start the background writer thread that drains raw.jsonl and
     // semantic.jsonl. Producers (raw/semantic) only push to its
@@ -130,6 +206,11 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     // is started lazily from raw::rawEventHandler once the VCL
     // scheduler is alive.
     outcome::install(g_sessionDir);
+
+    // Bracket the logs with start/end lifecycle events and arrange a
+    // clean shutdown — final outcome snapshot + writer thread join.
+    emitSessionStart();
+    std::atexit(onAtexit);
 
     std::fprintf(stderr,
                  "rllogger: session %s active at %s\n",
