@@ -17,6 +17,9 @@ $(eval $(call gb_Library_set_include,rllogger,\
 $(eval $(call gb_Library_use_sdk_api,rllogger))
 
 $(eval $(call gb_Library_use_libraries,rllogger,\
+    comphelper \
+    cppu \
+    cppuhelper \
     sal \
     tl \
     vcl \
@@ -25,6 +28,7 @@ $(eval $(call gb_Library_use_libraries,rllogger,\
 $(eval $(call gb_Library_add_exception_objects,rllogger,\
     rllogger/source/rllogger \
     rllogger/source/RawCapture \
+    rllogger/source/SemanticEmitter \
 ))
 
 # vim: set noet sw=4 ts=4:

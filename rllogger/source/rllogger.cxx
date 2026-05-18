@@ -10,6 +10,7 @@
 #include <rllogger/rllogger.hxx>
 
 #include <RawCapture.hxx>
+#include <SemanticEmitter.hxx>
 
 #include <chrono>
 #include <cstdio>
@@ -111,6 +112,11 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     // Install the raw VCL event listener; key/mouse/focus events start
     // appending to raw.jsonl from here on.
     raw::install(g_sessionDir);
+
+    // Install the semantic dispatch interceptor. The actual UNO
+    // subscription is deferred to a VCL idle so it runs after the
+    // service manager is fully bootstrapped.
+    semantic::install(g_sessionDir);
 
     std::fprintf(stderr,
                  "rllogger: session %s active at %s\n",
