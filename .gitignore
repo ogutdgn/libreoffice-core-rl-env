@@ -155,8 +155,11 @@ LibreOffice.VC.VC.opendb
 .qtc_clangd
 .cache
 
-# doxygen output
-/docs
+# Note: '/docs' was previously gitignored for upstream LibreOffice's
+# Doxygen output. In this fork we use /docs/ to hold project
+# documentation (architecture notes, extraction analysis, etc.).
+# If Doxygen output is ever re-enabled, point it elsewhere (e.g.
+# /apidocs).
 
 # make dump-deps output
 /lo.png
