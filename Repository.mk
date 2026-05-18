@@ -272,7 +272,6 @@ $(eval $(call gb_Helper_register_executables_for_install,UREBIN,ure,\
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,base, \
 	abp \
 	dbp \
-	dbu \
 ))
 
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,calc, \
@@ -340,11 +339,6 @@ $(eval $(call gb_Helper_register_executables_for_install,OOO,$(gb_haiku_or_kde),
     $(if $(ENABLE_GTK3_KDE5),lo_kde5filepicker) \
 ))
 
-$(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,math, \
-	sm \
-	smd \
-))
-
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ogltrans, \
 	OGLTrans \
 ))
@@ -395,7 +389,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	) \
     ) \
 	$(call gb_Helper_optional,SCRIPTING, \
-		basctl \
 		basprov \
 	) \
 	basegfx \
@@ -406,8 +399,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	$(if $(filter $(OS),WNT),,cmdmail) \
 	configmgr \
 	ctl \
-	dba \
-	dbahsql \
 	$(call gb_Helper_optional,DBCONNECTIVITY, \
 		dbase \
 		dbaxml) \
@@ -429,7 +420,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	fps_office \
 	for \
 	forui \
-	frm \
 	fsstorage \
 	fwk \
     $(call gb_Helper_optionals_or,HELPTOOLS XMLHELP,helplinker) \
@@ -560,11 +550,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,python, \
 $(eval $(call gb_Helper_register_libraries_for_install,PLAINLIBS_OOO,python, \
 	pyuno \
 	$(if $(filter-out WNT,$(OS)),pyuno_wrapper) \
-))
-
-$(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,reportbuilder, \
-	rpt \
-	rptui \
 ))
 
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,writer, \
@@ -809,11 +794,6 @@ $(eval $(call gb_Helper_register_jars_for_install,OOO,ooo, \
 	smoketest \
 	table \
 	unoil \
-))
-
-$(eval $(call gb_Helper_register_jars_for_install,OOO,reportbuilder, \
-	reportbuilder \
-	reportbuilderwizard \
 ))
 
 ifneq ($(ENABLE_SCRIPTING_BEANSHELL),)
@@ -1106,10 +1086,6 @@ $(eval $(call gb_Helper_register_packages_for_install,pdfimport, \
 ))
 endif
 
-$(eval $(call gb_Helper_register_packages_for_install,reportbuilder,\
-	reportbuilder_templates \
-))
-
 $(eval $(call gb_Helper_register_packages_for_install,xsltfilter,\
 	filter_docbook \
 	filter_xhtml \
@@ -1196,30 +1172,24 @@ $(eval $(call gb_ExternalExecutable_register_executables,\
 # Resources
 $(eval $(call gb_Helper_register_mos,\
     $(call gb_Helper_optional,AVMEDIA,avmedia) \
-	$(call gb_Helper_optional,SCRIPTING,basctl) \
 	chart \
 	cnr \
 	cui \
-	dba \
 	dkt \
 	editeng \
 	flt \
 	for \
 	$(call gb_Helper_optional,DESKTOP,fps) \
-	frm \
 	fwk \
 	oox \
 	pcr \
-	rpt \
 	$(call gb_Helper_optional,SCRIPTING,sb) \
 	sc \
 	sca \
 	scc \
 	sd \
-	sdext \
 	sfx \
 	shell \
-	sm \
 	svl \
 	svt \
 	svx \
@@ -1232,12 +1202,6 @@ $(eval $(call gb_Helper_register_mos,\
 ))
 
 # UI configuration
-ifneq ($(ENABLE_WASM_STRIP_DBACCESS),TRUE)
-$(eval $(call gb_Helper_register_uiconfigs,\
-	$(call gb_Helper_optional,DBCONNECTIVITY,dbaccess) \
-))
-endif
-
 $(eval $(call gb_Helper_register_uiconfigs,\
 	cui \
 	desktop \

@@ -23,7 +23,7 @@ share_SRCDIR := $(SRCDIR)/sysui/desktop
 
 share_TRANSLATE := $(SRCDIR)/solenv/bin/desktop-translate.py
 
-LAUNCHERLIST_APPS := writer calc draw impress math base startcenter
+LAUNCHERLIST_APPS := writer calc draw impress startcenter
 LAUNCHERLIST := $(LAUNCHERLIST_APPS) xsltfilter
 LAUNCHERS := $(foreach launcher,$(LAUNCHERLIST),$(share_SRCDIR)/menus/$(launcher).desktop)
 

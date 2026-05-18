@@ -32,7 +32,6 @@ $(eval $(call gb_Library_use_sdk_api,cui))
 
 $(eval $(call gb_Library_use_libraries,cui,\
 	$(call gb_Helper_optional,AVMEDIA,avmedia) \
-    $(call gb_Helper_optional,SCRIPTING,basctl) \
     basegfx \
     comphelper \
     cppu \
@@ -147,8 +146,6 @@ $(eval $(call gb_Library_add_exception_objects,cui,\
     cui/source/dialogs/GraphicTestsDialog \
     cui/source/dialogs/ImageViewerDialog \
     cui/source/dialogs/scriptdlg \
-    $(call gb_Helper_optional,SCRIPTING, \
-        cui/source/dialogs/MacroManagerDialog) \
     cui/source/dialogs/SignatureLineDialogBase \
     cui/source/dialogs/SignatureLineDialog \
     cui/source/dialogs/SignSignatureLineDialog \

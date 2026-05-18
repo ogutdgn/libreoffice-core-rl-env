@@ -22,16 +22,12 @@ $(eval $(call gb_InstallModule_add_scpfiles,scp2/windows,\
 ))
 
 $(eval $(call gb_InstallModule_add_localized_scpfiles,scp2/windows,\
-    scp2/source/base/folderitem_base \
-    scp2/source/base/registryitem_base \
     scp2/source/calc/folderitem_calc \
     scp2/source/calc/registryitem_calc \
     scp2/source/draw/folderitem_draw \
     scp2/source/draw/registryitem_draw \
     scp2/source/impress/folderitem_impress \
     scp2/source/impress/registryitem_impress \
-    scp2/source/math/folderitem_math \
-    scp2/source/math/registryitem_math \
     scp2/source/ooo/folderitem_ooo \
     scp2/source/ooo/registryitem_ooo \
     scp2/source/writer/folderitem_writer \
