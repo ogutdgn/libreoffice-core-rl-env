@@ -9,6 +9,8 @@
 
 #include <rllogger/rllogger.hxx>
 
+#include <RawCapture.hxx>
+
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -105,6 +107,10 @@ SAL_DLLPUBLIC_EXPORT void initialize()
     touchEmptyFile(g_sessionDir / "outcome.jsonl");
 
     g_active = true;
+
+    // Install the raw VCL event listener; key/mouse/focus events start
+    // appending to raw.jsonl from here on.
+    raw::install(g_sessionDir);
 
     std::fprintf(stderr,
                  "rllogger: session %s active at %s\n",

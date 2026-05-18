@@ -9,12 +9,20 @@
 
 $(eval $(call gb_Library_Library,rllogger))
 
+$(eval $(call gb_Library_set_include,rllogger,\
+    -I$(SRCDIR)/rllogger/inc \
+    $$(INCLUDE) \
+))
+
 $(eval $(call gb_Library_use_libraries,rllogger,\
     sal \
+    tl \
+    vcl \
 ))
 
 $(eval $(call gb_Library_add_exception_objects,rllogger,\
     rllogger/source/rllogger \
+    rllogger/source/RawCapture \
 ))
 
 # vim: set noet sw=4 ts=4:
