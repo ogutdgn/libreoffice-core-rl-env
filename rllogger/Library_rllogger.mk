@@ -14,6 +14,8 @@ $(eval $(call gb_Library_set_include,rllogger,\
     $$(INCLUDE) \
 ))
 
+$(eval $(call gb_Library_use_sdk_api,rllogger))
+
 $(eval $(call gb_Library_use_libraries,rllogger,\
     sal \
     tl \
