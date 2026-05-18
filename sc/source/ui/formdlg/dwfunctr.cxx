@@ -17,7 +17,6 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
-#include <basctl/basctldllpublic.hxx>
 #include <comphelper/string.hxx>
 #include <editeng/editview.hxx>
 #include <sfx2/dispatch.hxx>
