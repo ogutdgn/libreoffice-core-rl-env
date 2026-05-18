@@ -34,9 +34,6 @@
 #include <comphelper/processfactory.hxx>
 #include <cppuhelper/implbase.hxx>
 #include <rtl/ustring.hxx>
-#include <vcl/svapp.hxx>
-#include <vcl/idle.hxx>
-#include <tools/link.hxx>
 
 using namespace ::com::sun::star;
 
@@ -273,15 +270,20 @@ public:
 };
 
 uno::Reference<document::XDocumentEventListener> g_docListener;
-Idle g_installIdle("rllogger.semantic.install");
+std::atomic<bool> g_uno_subscription_done{false};
 
 // Subscribing to theGlobalEventBroadcaster from rllogger::initialize()
 // (run early in sofficemain) hits the UNO bootstrap window when the
-// service manager is not yet primed. Defer the subscription to a VCL
-// idle slot so it runs after Application::Execute() has the UNO context
-// fully wired.
-void doInstallImpl(void* /*pThis*/, Timer* /*pTimer*/)
+// service manager is not yet primed. Use a lazy synchronous attempt:
+// the first time a raw VCL event fires after install() we retry the
+// subscription, since by then Application::Execute() is running and
+// the UNO context is fully wired. The first successful attempt sets
+// g_uno_subscription_done so the retry path becomes a cheap atomic
+// read on every later event.
+void trySubscribeOnce()
 {
+    if (g_uno_subscription_done.load(std::memory_order_acquire)) return;
+
     try
     {
         const uno::Reference<uno::XComponentContext> xCtx =
@@ -294,13 +296,20 @@ void doInstallImpl(void* /*pThis*/, Timer* /*pTimer*/)
 
         g_docListener.set(new RlDocumentEventListener);
         xBroadcaster->addDocumentEventListener(g_docListener);
+        g_uno_subscription_done.store(true, std::memory_order_release);
     }
     catch (const uno::Exception&)
     {
+        // Try again later — leave g_uno_subscription_done false.
     }
 }
 
 } // namespace
+
+void retrySubscription()
+{
+    trySubscribeOnce();
+}
 
 void install(const std::filesystem::path& sessionDir)
 {
@@ -320,12 +329,10 @@ void install(const std::filesystem::path& sessionDir)
 
     g_installed = true;
 
-    // Defer the actual UNO subscription until VCL's main loop is ticking;
-    // see doInstallImpl comment above. The Link ctor is private — must
-    // go through LINK_NONMEMBER, which expects a (void*, Arg) callable.
-    g_installIdle.SetInvokeHandler(LINK_NONMEMBER(nullptr, doInstallImpl));
-    g_installIdle.SetPriority(TaskPriority::LOWEST);
-    g_installIdle.Start();
+    // Try the UNO subscription synchronously; if the service manager is
+    // not yet wired we'll retry on the first raw VCL event via
+    // retrySubscription() called from RawCapture.cxx.
+    trySubscribeOnce();
 }
 
 } // namespace rllogger::semantic

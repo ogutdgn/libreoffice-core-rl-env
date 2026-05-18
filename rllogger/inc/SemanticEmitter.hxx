@@ -18,6 +18,14 @@ namespace rllogger::semantic {
 // XDispatchRecorder to be attached to every loaded Frame. Idempotent.
 void install(const std::filesystem::path& sessionDir);
 
+// Retry the UNO subscription if it failed during install() (the UNO
+// service manager isn't fully wired when sofficemain calls
+// rllogger::initialize). Called from the raw VCL event handler — by
+// the time the first VCL event fires, Application::Execute() is
+// running and the UNO context is ready. Cheap atomic-read no-op after
+// the first successful attempt.
+void retrySubscription();
+
 } // namespace rllogger::semantic
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

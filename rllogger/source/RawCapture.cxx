@@ -8,6 +8,7 @@
  */
 
 #include <RawCapture.hxx>
+#include <SemanticEmitter.hxx>
 
 #include <atomic>
 #include <chrono>
@@ -164,6 +165,13 @@ void rawEventHandler(void* /*pThis*/, VclSimpleEvent& rEvent)
     const VclEventId id = rEvent.GetId();
     const char* eventName = nameForEventId(id);
     if (!eventName) return; // filter out everything else
+
+    // First-event retry: rllogger::initialize() ran before the UNO
+    // service manager was wired, so semantic::install() may have
+    // failed to subscribe to theGlobalEventBroadcaster. Now that VCL
+    // is dispatching events, the UNO context is ready. The retry is
+    // a cheap atomic load on every subsequent event.
+    semantic::retrySubscription();
 
     auto* w = dynamic_cast<VclWindowEvent*>(&rEvent);
     void* pData = w ? w->GetData() : nullptr;
