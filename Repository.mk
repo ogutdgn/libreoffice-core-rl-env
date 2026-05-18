@@ -556,7 +556,6 @@ $(eval $(call gb_Helper_register_plugins_for_install,OOOLIBS,writer, \
 
 # cli_cppuhelper is NONE even though it is actually in URE because it is CliNativeLibrary
 $(eval $(call gb_Helper_register_libraries,PLAINLIBS_NONE, \
-	smoketest \
 	subsequenttest \
 	test \
 	test-setupvcl \
@@ -767,7 +766,6 @@ $(eval $(call gb_Helper_register_jars_for_install,OOO,ooo, \
 	query \
 	report \
 	sdbc_hsqldb \
-	smoketest \
 	table \
 	unoil \
 ))
@@ -788,7 +786,6 @@ $(eval $(call gb_Helper_register_jars,OXT, \
 	EvolutionarySolver \
 	active_java \
 	mediawiki \
-	nlpsolver \
 	passive_java \
 ))
 
@@ -1107,12 +1104,6 @@ $(eval $(call gb_Helper_register_packages_for_install,onlineupdate,\
 	$(if $(ENABLE_ONLINE_UPDATE),$(if $(filter LINUX SOLARIS,$(OS)),setup_native_scripts)) \
 ))
 
-ifeq (LIBRELOGO,$(filter LIBRELOGO,$(BUILD_TYPE)))
-$(eval $(call gb_Helper_register_packages_for_install,librelogo, \
-	librelogo \
-	librelogo_properties \
-))
-endif
 
 
 # External executables

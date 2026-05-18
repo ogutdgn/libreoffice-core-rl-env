@@ -74,12 +74,10 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	idl \
 	instsetoo_native \
 	io \
-	$(call gb_Helper_optional,LIBRELOGO,librelogo) \
 	libreofficekit \
 	lingucomponent \
 	linguistic \
 	$(call gb_Helper_optional,DESKTOP,l10ntools) \
-	$(call gb_Helper_optional,NLPSOLVER,nlpsolver) \
 	o3tl \
 	$(call gb_Helper_optional,ODK,odk) \
 	offapi \
@@ -90,10 +88,8 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	package \
 	pch \
 	postprocess \
-	$(call gb_Helper_optional,QADEVOOO,qadevOOo) \
 	readlicense_oo \
 	registry \
-	remotebridges \
 	sal \
 	salhelper \
 	sax \
@@ -113,7 +109,6 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
     $(if $(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS),, \
 	slideshow \
     ) \
-	smoketest \
 	solenv \
 	soltools \
 	sot \
