@@ -19,7 +19,6 @@ $(eval $(call gb_Module_add_targets,scp2,\
 	InstallModule_impress \
 	InstallModule_onlineupdate \
 	InstallModule_ooo \
-	InstallModule_python \
 	InstallModule_spsupp \
 	InstallModule_ure \
 	InstallModule_writer \

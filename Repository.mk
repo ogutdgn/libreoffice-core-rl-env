@@ -426,7 +426,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	i18npool \
 	i18nsearch \
 	$(if $(ENABLE_JAVA),jdbc) \
-	$(if $(ENABLE_QUICKJS),jsuno) \
 	$(if $(filter WNT,$(OS)),jumplist) \
 	$(if $(ENABLE_LDAP),ldapbe2) \
 	$(if $(filter WNT,$(OS)),WinUserInfoBe) \
@@ -453,7 +452,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,ooo, \
 	passwordcontainer \
 	pcr \
 	pdffilter \
-	$(if $(ENABLE_RUST_UNO),rust_uno-cpp) \
 	$(call gb_Helper_optional,SCRIPTING,protocolhandler) \
 	sax \
 	sb \
@@ -543,15 +541,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,pdfimport, \
 ))
 endif
 
-$(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,python, \
-	pythonloader \
-))
-
-$(eval $(call gb_Helper_register_libraries_for_install,PLAINLIBS_OOO,python, \
-	pyuno \
-	$(if $(filter-out WNT,$(OS)),pyuno_wrapper) \
-))
-
 $(eval $(call gb_Helper_register_libraries_for_install,OOOLIBS,writer, \
 	hwp \
 	$(if $(ENABLE_LWP),lwpft) \
@@ -630,8 +619,6 @@ $(eval $(call gb_Helper_register_libraries_for_install,PRIVATELIBS_URE,ure, \
 	io \
 	$(if $(ENABLE_JAVA),javaloader) \
 	$(if $(ENABLE_JAVA),javavm) \
-	$(if $(ENABLE_JAVA),jvmaccess) \
-	$(if $(ENABLE_JAVA),jvmfwk) \
 	namingservice \
 	proxyfac \
 	reflection \
@@ -769,7 +756,6 @@ $(eval $(call gb_Helper_register_libraries,EXTENSIONLIBS, \
 	active_native \
 	passive_native \
 	crashextension \
-	rust_uno-example \
 ))
 
 ifneq ($(ENABLE_JAVA),)
@@ -1004,13 +990,6 @@ $(eval $(call gb_Helper_register_packages_for_install,ooo,\
 	) \
 	$(if $(filter SKIA,$(BUILD_TYPE)), \
 		vcl_skia_denylist ) \
-	$(if $(DISABLE_PYTHON),, \
-		Pyuno/commonwizards \
-		Pyuno/fax \
-		Pyuno/letter \
-		Pyuno/agenda \
-		Pyuno/mailmerge \
-	) \
 	sfx2_classification \
 	svx_document_themes \
     $(if $(filter OPENCL,$(BUILD_TYPE)),sc_opencl_runtimetest) \
@@ -1138,26 +1117,6 @@ $(eval $(call gb_Helper_register_packages_for_install,onlineupdate,\
 	$(if $(ENABLE_ONLINE_UPDATE),$(if $(filter LINUX SOLARIS,$(OS)),setup_native_scripts)) \
 ))
 
-ifneq ($(DISABLE_PYTHON),TRUE)
-$(eval $(call gb_Helper_register_packages_for_install,python, \
-    pyuno_pythonloader_ini \
-	pyuno_python_scripts \
-	$(if $(SYSTEM_PYTHON),,$(if $(filter-out WNT,$(OS)),python_shell)) \
-	scripting_ScriptsPython \
-))
-
-$(eval $(call gb_Helper_register_packages_for_install,python_scriptprovider, \
-    scripting_scriptproviderforpython \
-))
-
-ifeq (LIBRELOGO,$(filter LIBRELOGO,$(BUILD_TYPE)))
-$(eval $(call gb_Helper_register_packages_for_install,python_librelogo, \
-	librelogo \
-	librelogo_properties \
-))
-endif # LIBRELOGO
-
-endif # DISABLE_PYTHON
 
 # External executables
 $(eval $(call gb_ExternalExecutable_register_executables,\

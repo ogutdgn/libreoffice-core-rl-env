@@ -50,10 +50,8 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	avmedia \
 	basegfx \
 	basic \
-	bean \
 	binaryurp \
 	bridges \
-	cli_ure \
     codemaker \
 	comphelper \
 	configmgr \
@@ -86,18 +84,12 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	idl \
 	instsetoo_native \
 	io \
-	javaunohelper \
-	$(if $(ENABLE_QUICKJS),jsuno) \
-	jurt \
-	jvmaccess \
-	jvmfwk \
 	$(call gb_Helper_optional,LIBRELOGO,librelogo) \
 	libreofficekit \
 	lingucomponent \
 	linguistic \
 	lotuswordpro \
 	$(call gb_Helper_optional,DESKTOP,l10ntools) \
-	net_ure \
 	$(call gb_Helper_optional,NLPSOLVER,nlpsolver) \
 	o3tl \
 	$(call gb_Helper_optional,ODK,odk) \
@@ -109,13 +101,10 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	package \
 	pch \
 	postprocess \
-	$(call gb_Helper_optional,PYUNO,pyuno) \
 	$(call gb_Helper_optional,QADEVOOO,qadevOOo) \
 	readlicense_oo \
 	registry \
 	remotebridges \
-	ridljar \
-	rust_uno \
 	sal \
 	salhelper \
 	sax \
