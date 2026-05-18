@@ -275,7 +275,8 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     --disable-online-update \
     --disable-extension-update \
     --disable-pdfimport \
-    --disable-librelogo
+    --disable-librelogo \
+    --disable-opencl
 
 # First-time build: `make` (no args) runs the full bootstrap → fetch →
 # build-tools → all-modules chain. `make sw sc sd` SKIPS that chain and
