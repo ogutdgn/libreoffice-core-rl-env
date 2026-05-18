@@ -265,15 +265,23 @@ Each step is a single git commit on `phase3/writer-logger`, build-
 verified and smoke-tested in WSL before the next step starts. Mirrors
 the discipline established in Phase 1.
 
+The original ordering started with the background writer thread (step
+4) immediately after raw capture. While implementing step 3 the
+per-event flush turned out to be fine for the event rates a Writer
+session produces (~700 mouse-moves + a handful of key/click events
+in a minute, no UI lag, raw.jsonl ≈ 180 KB), so the perf pass moves
+later — after the functional pieces (semantic + outcome) are in
+place. The renumbered table reflects the order actually executed.
+
 | # | Commit subject | Verification |
 |---|---|---|
 | 1 | `feat(rllogger): scaffold empty module` | `librllogger.so` appears in `instdir/program/` |
 | 2 | `feat(rllogger): env-var activation + session ID` | `LO_RL_LOG_DIR=/tmp/x soffice` creates `/tmp/x/<sessionId>/` |
-| 3 | `feat(rllogger): raw event capture (VCL listener)` | Typing `hello` produces 5 `key.down` lines in `raw.jsonl` |
-| 4 | `feat(rllogger): background writer thread + buffer` | Burst typing (~100 chars/s) loses no events |
-| 5 | `feat(rllogger): semantic dispatch interceptor (skeleton)` | `.uno:Bold` produces a `semantic.jsonl` line |
-| 6 | `feat(rllogger): semantic command map (Writer V1 set) + trigger heuristic` | Ctrl+B → `name: "format_bold", trigger: "shortcut"`; toolbar Bold → `trigger: "toolbar"` |
-| 7 | `feat(rllogger): outcome snapshot via LOK` | After typing 5 words, `outcome.jsonl` shows `counts.words = 5` |
+| 3 | `feat(rllogger): raw event capture (VCL listener)` | Writer session writes key/mouse/focus events to `raw.jsonl`; `grep -oP '"type":"[^"]+' raw.jsonl \| sort \| uniq -c` shows the expected distribution |
+| 4 | `feat(rllogger): semantic dispatch interceptor (skeleton)` | `.uno:Bold` produces a `semantic.jsonl` line |
+| 5 | `feat(rllogger): semantic command map (Writer V1 set) + trigger heuristic` | Ctrl+B → `name: "format_bold", trigger: "shortcut"`; toolbar Bold → `trigger: "toolbar"` |
+| 6 | `feat(rllogger): outcome snapshot via LOK` | After typing 5 words, `outcome.jsonl` shows `counts.words = 5` |
+| 7 | `feat(rllogger): background writer thread + buffer` (perf pass) | Burst typing (~100 chars/s) under `perf stat` shows no main-thread file I/O; raw.jsonl still consistent |
 | 8 | `feat(rllogger): rawEventIdRange linking + gesture batching` | Ctrl+B → semantic event's `rawEventIdRange` covers the `[key.down ctrl, key.down b, key.up b, key.up ctrl]` window |
 | 9 | `feat(rllogger): session_start / session_end events + final outcome flush` | Each session's logs bracket with start and end events |
 | 10 | `docs(agents): logger architecture + V1 usage` | AGENTS.md updated; this design doc cross-referenced |
