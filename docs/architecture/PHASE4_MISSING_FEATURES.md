@@ -54,6 +54,12 @@ Each missing feature is one row in the table below. Required fields:
 | 17 | Auto Check for Updates / What's New | Help | none | omit | LO has no in-app "what's new" panel; release notes are external. V2+: in-product changelog viewer. |
 | 18 | Contact Support | Help | none | omit | LO routes to community channels rather than commercial support. V2+: open a configurable support URL (per-distribution). |
 | 19 | Show Training | Help | none | omit | LO has no built-in training content. V2+: web-based tutorial launcher. |
+| 20 | Dictate (Voice group) | Home / Voice | none | wire to: `.uno:SpellingDialog` (placeholder, visual parity only) | Word's Dictate streams audio to cloud STT. LO has no native dictation. V2+: integrate a desktop STT (Whisper-cpp) behind a new `.uno:Dictate` command. Button id `Home-Dictate` is wired to the Spelling dialog as a no-op stub so the ribbon group renders. |
+| 21 | Editor (Editor group) | Home / Editor | partial | wire to: `.uno:SpellingDialog` | Word's "Editor" pane is a unified spell/grammar/style review surface. LO's Spelling dialog covers the core slice. V2+: extend with a sidebar deck that aggregates writing-style suggestions (LanguageTool integration already exists as an extension). |
+| 22 | Text Effects & Typography (Font group) | Home / Font | partial | wire to: `.uno:FontworkGalleryFloater` | Word's drop-down applies text glow / shadow / outline / 3D effects in-place. LO's Fontwork inserts a separate art object, not character-level effects. V2+: a real char-effect dropdown wired to character shadow/outline/glow attributes. |
+| 23 | Multilevel List (Paragraph group) | Home / Paragraph | partial | wire to: `.uno:ChapterNumberingDialog` | LO has chapter numbering as a dialog rather than an inline gallery of multilevel list presets. V2+: gallery widget enumerating built-in list templates plus user-defined ones. |
+| 24 | Replace (Editing group split entry) | Home / Editing | equivalent | wire to: `.uno:SearchDialog` | LO's Find & Replace dialog covers both modes; Word splits Find / Replace into two ribbon entries but they open the same underlying dialog. No work needed in V2+. |
+| 25 | Add-ins (Add-ins group) | Home / Add-ins | partial | wire to: `.uno:ExtensionManager` | Word's Add-ins button opens the Microsoft store / installed Office add-ins picker. LO's Extension Manager is the equivalent surface (manage installed `.oxt`). V2+: rebrand label "Add-ins" and surface curated extension gallery, but no functional gap. |
 
 ---
 
