@@ -14,4 +14,9 @@
   <toolbar:toolbaritem xlink:href=".uno:Undo"/>
   <toolbar:toolbaritem xlink:href=".uno:Redo"/>
   <toolbar:toolbaritem xlink:href=".uno:Print"/>
+  <toolbar:toolbarseparator/>
+  <!-- Phase 4: Word title-bar right cluster (Comments / Editing / Share) -->
+  <toolbar:toolbaritem xlink:href=".uno:InsertAnnotation"/>
+  <toolbar:toolbaritem xlink:href=".uno:EditDoc"/>
+  <toolbar:toolbaritem xlink:href=".uno:SendMail"/>
 </toolbar:toolbar>
