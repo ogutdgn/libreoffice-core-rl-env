@@ -14,6 +14,7 @@
 #include <RawCapture.hxx>
 #include <SemanticEmitter.hxx>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -22,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #if defined(__unix__) || defined(__APPLE__)
 #include <unistd.h>
@@ -65,6 +67,63 @@ std::string escapeAscii(std::string_view s)
         }
     }
     return out;
+}
+
+// Resolve the base directory where session subdirectories live.
+//   LO_RL_LOG_DIR set       -> that path verbatim
+//   otherwise               -> platform default below
+// The default keeps the logger always-on without forcing every
+// downstream tooling user to remember the env var. Opt-out is
+// LO_RL_LOG_DISABLE=1.
+std::filesystem::path resolveBaseDir()
+{
+    if (const char* explicit_dir = std::getenv("LO_RL_LOG_DIR");
+        explicit_dir != nullptr && explicit_dir[0] != '\0')
+    {
+        return std::filesystem::path(explicit_dir);
+    }
+#if defined(_WIN32)
+    if (const char* appdata = std::getenv("LOCALAPPDATA"); appdata != nullptr)
+        return std::filesystem::path(appdata) / "lo-rl-logs";
+    if (const char* userprofile = std::getenv("USERPROFILE"); userprofile != nullptr)
+        return std::filesystem::path(userprofile) / ".lo-rl-logs";
+    return std::filesystem::temp_directory_path() / "lo-rl-logs";
+#else
+    if (const char* home = std::getenv("HOME"); home != nullptr)
+        return std::filesystem::path(home) / ".lo-rl-logs";
+    return std::filesystem::temp_directory_path() / "lo-rl-logs";
+#endif
+}
+
+// Keep the most recent N session dirs under baseDir; remove older
+// ones so an always-on logger doesn't grow unboundedly. Errors are
+// swallowed — cleanup is best-effort and never blocks a session.
+void cleanupOldSessions(const std::filesystem::path& baseDir, size_t keep)
+{
+    namespace fs = std::filesystem;
+    try
+    {
+        std::vector<fs::path> entries;
+        for (const auto& e : fs::directory_iterator(baseDir))
+            if (e.is_directory()) entries.push_back(e.path());
+
+        if (entries.size() <= keep) return;
+
+        std::sort(entries.begin(), entries.end(),
+                  [](const fs::path& a, const fs::path& b) {
+                      std::error_code ec1, ec2;
+                      const auto ta = fs::last_write_time(a, ec1);
+                      const auto tb = fs::last_write_time(b, ec2);
+                      return ta > tb; // newest first
+                  });
+
+        std::error_code ec;
+        for (size_t i = keep; i < entries.size(); ++i)
+            fs::remove_all(entries[i], ec);
+    }
+    catch (const std::exception&)
+    {
+    }
 }
 
 std::string makeSessionId()
@@ -147,14 +206,16 @@ void onAtexit()
 
 SAL_DLLPUBLIC_EXPORT void initialize()
 {
-    const char* env = std::getenv("LO_RL_LOG_DIR");
-    if (env == nullptr || env[0] == '\0')
+    // Opt-out: LO_RL_LOG_DISABLE=1 short-circuits to a true no-op so
+    // packaging users / CI / debug builds can suppress the logger
+    // without touching the binary.
+    if (const char* off = std::getenv("LO_RL_LOG_DISABLE");
+        off != nullptr && off[0] != '\0' && off[0] != '0')
     {
-        // Logger disabled. Zero overhead path.
         return;
     }
 
-    std::filesystem::path baseDir(env);
+    const std::filesystem::path baseDir = resolveBaseDir();
 
     std::error_code ec;
     std::filesystem::create_directories(baseDir, ec);
@@ -165,6 +226,11 @@ SAL_DLLPUBLIC_EXPORT void initialize()
                      baseDir.string().c_str(), ec.message().c_str());
         return;
     }
+
+    // Trim to the last 50 sessions so an always-on default doesn't
+    // grow unboundedly. Runs before the new session is created, so
+    // the cap is the cap on *previous* sessions.
+    cleanupOldSessions(baseDir, 50);
 
     g_sessionId = makeSessionId();
     g_sessionDir = baseDir / g_sessionId;
