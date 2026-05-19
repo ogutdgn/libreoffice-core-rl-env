@@ -5789,6 +5789,78 @@
               </packing>
             </child>
             <child>
+              <object class="sfxlo-PriorityHBox" id="Design Tab">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="valign">center</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="sfxlo-PriorityMergedHBox" id="Design">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="VclOptionalBox" id="Design-Section-Watermark">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <child>
+                          <object class="sfxlo-NotebookbarToolBox" id="DesignWatermarkToolBox">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">True</property>
+                            <property name="toolbar-style">both</property>
+                            <property name="icon_size">3</property>
+                            <property name="show-arrow">False</property>
+                            <child>
+                              <object class="GtkToolButton" id="Design-Watermark">
+                                <property name="visible">True</property>
+                                <property name="action-name">.uno:Watermark</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="homogeneous">True</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="DesignLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes" context="WriterNotebookbar|DesignLabel">~Design</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="position">3</property>
+                <property name="tab-fill">False</property>
+              </packing>
+            </child>
+            <child>
               <object class="sfxlo-PriorityHBox" id="Layout Tab">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -7762,6 +7834,78 @@
               </object>
               <packing>
                 <property name="position">5</property>
+                <property name="tab-fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="sfxlo-PriorityHBox" id="Mailings Tab">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="valign">center</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="sfxlo-PriorityMergedHBox" id="Mailings">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="VclOptionalBox" id="Mailings-Section-Wizard">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <child>
+                          <object class="sfxlo-NotebookbarToolBox" id="MailingsWizardToolBox">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">True</property>
+                            <property name="toolbar-style">both</property>
+                            <property name="icon_size">3</property>
+                            <property name="show-arrow">False</property>
+                            <child>
+                              <object class="GtkToolButton" id="Mailings-MailMergeWizard">
+                                <property name="visible">True</property>
+                                <property name="action-name">.uno:MailMergeWizard</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="homogeneous">True</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="MailingsLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes" context="WriterNotebookbar|MailingsLabel">~Mailings</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="position">6</property>
                 <property name="tab-fill">False</property>
               </packing>
             </child>
@@ -9752,6 +9896,78 @@
               </object>
               <packing>
                 <property name="position">8</property>
+                <property name="tab-fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="sfxlo-PriorityHBox" id="Help Tab">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="valign">center</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="sfxlo-PriorityMergedHBox" id="Help">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="VclOptionalBox" id="Help-Section-Help">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <child>
+                          <object class="sfxlo-NotebookbarToolBox" id="HelpHelpToolBox">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">True</property>
+                            <property name="toolbar-style">both</property>
+                            <property name="icon_size">3</property>
+                            <property name="show-arrow">False</property>
+                            <child>
+                              <object class="GtkToolButton" id="Help-HelpIndex">
+                                <property name="visible">True</property>
+                                <property name="action-name">.uno:HelpIndex</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="homogeneous">True</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="HelpLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes" context="WriterNotebookbar|HelpLabel">~Help</property>
+                <property name="use-underline">True</property>
+              </object>
+              <packing>
+                <property name="position">9</property>
                 <property name="tab-fill">False</property>
               </packing>
             </child>
@@ -18130,222 +18346,6 @@
               </object>
               <packing>
                 <property name="position">18</property>
-                <property name="tab-fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="sfxlo-PriorityHBox" id="Design Tab">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="valign">center</property>
-                <property name="vexpand">True</property>
-                <child>
-                  <object class="sfxlo-PriorityMergedHBox" id="Design">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="valign">center</property>
-                    <property name="vexpand">True</property>
-                    <child>
-                      <object class="VclOptionalBox" id="Design-Section-Watermark">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="valign">center</property>
-                        <property name="vexpand">True</property>
-                        <child>
-                          <object class="sfxlo-NotebookbarToolBox" id="DesignWatermarkToolBox">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="vexpand">True</property>
-                            <property name="toolbar-style">both</property>
-                            <property name="icon_size">3</property>
-                            <property name="show-arrow">False</property>
-                            <child>
-                              <object class="GtkToolButton" id="Design-Watermark">
-                                <property name="visible">True</property>
-                                <property name="action-name">.uno:Watermark</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="homogeneous">True</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="DesignLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes" context="WriterNotebookbar|DesignLabel">~Design</property>
-                <property name="use-underline">True</property>
-              </object>
-              <packing>
-                <property name="position">3</property>
-                <property name="tab-fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="sfxlo-PriorityHBox" id="Mailings Tab">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="valign">center</property>
-                <property name="vexpand">True</property>
-                <child>
-                  <object class="sfxlo-PriorityMergedHBox" id="Mailings">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="valign">center</property>
-                    <property name="vexpand">True</property>
-                    <child>
-                      <object class="VclOptionalBox" id="Mailings-Section-Wizard">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="valign">center</property>
-                        <property name="vexpand">True</property>
-                        <child>
-                          <object class="sfxlo-NotebookbarToolBox" id="MailingsWizardToolBox">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="vexpand">True</property>
-                            <property name="toolbar-style">both</property>
-                            <property name="icon_size">3</property>
-                            <property name="show-arrow">False</property>
-                            <child>
-                              <object class="GtkToolButton" id="Mailings-MailMergeWizard">
-                                <property name="visible">True</property>
-                                <property name="action-name">.uno:MailMergeWizard</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="homogeneous">True</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="MailingsLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes" context="WriterNotebookbar|MailingsLabel">~Mailings</property>
-                <property name="use-underline">True</property>
-              </object>
-              <packing>
-                <property name="position">6</property>
-                <property name="tab-fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="sfxlo-PriorityHBox" id="Help Tab">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="valign">center</property>
-                <property name="vexpand">True</property>
-                <child>
-                  <object class="sfxlo-PriorityMergedHBox" id="Help">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="valign">center</property>
-                    <property name="vexpand">True</property>
-                    <child>
-                      <object class="VclOptionalBox" id="Help-Section-Help">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="valign">center</property>
-                        <property name="vexpand">True</property>
-                        <child>
-                          <object class="sfxlo-NotebookbarToolBox" id="HelpHelpToolBox">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="valign">center</property>
-                            <property name="vexpand">True</property>
-                            <property name="toolbar-style">both</property>
-                            <property name="icon_size">3</property>
-                            <property name="show-arrow">False</property>
-                            <child>
-                              <object class="GtkToolButton" id="Help-HelpIndex">
-                                <property name="visible">True</property>
-                                <property name="action-name">.uno:HelpIndex</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="homogeneous">True</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="HelpLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes" context="WriterNotebookbar|HelpLabel">~Help</property>
-                <property name="use-underline">True</property>
-              </object>
-              <packing>
-                <property name="position">9</property>
                 <property name="tab-fill">False</property>
               </packing>
             </child>
