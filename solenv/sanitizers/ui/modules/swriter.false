@@ -729,5 +729,8 @@ sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Tools-AutoControlFocu
 sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Tools-OptionsTreeDialog'] button-no-label
 sw/uiconfig/swriter/ui/notebookbar.ui://GtkMenuItem[@id='MenuView-BaselineGridVisible'] button-no-label
 sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Insert-ConnectorToolbox'] button-no-label
+sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Design-Watermark'] button-no-label
+sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Mailings-MailMergeWizard'] button-no-label
+sw/uiconfig/swriter/ui/notebookbar.ui://GtkToolButton[@id='Help-HelpIndex'] button-no-label
 
 sw/uiconfig/swriter/ui/optfonttabpage.ui://GtkLabel[@id='font_label'] orphan-label
