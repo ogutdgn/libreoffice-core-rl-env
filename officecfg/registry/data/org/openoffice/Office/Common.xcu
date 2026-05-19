@@ -402,6 +402,9 @@
     </node>
   </node>
   <node oor:name="Misc">
+    <prop oor:name="ApplicationAppearance" oor:type="xs:short">
+      <value>2</value>
+    </prop>
     <prop oor:name="UseSystemColorDialog">
     </prop>
     <prop oor:name="UseSystemFileDialog">
