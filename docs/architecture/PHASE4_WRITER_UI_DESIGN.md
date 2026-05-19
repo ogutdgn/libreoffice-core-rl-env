@@ -348,14 +348,16 @@ LO equivalent: disable the Start Center for Writer-only launches; see [§13 impl
 
 | # | Question | Recommendation |
 |---|---|---|
-| Q1 | Acrobat / extension tabs visible in the reference screenshot — we don't ship those, right? | **Confirm "no Acrobat tab"**. The screenshot's Acrobat tab is an Adobe extension; we won't replicate. |
-| Q2 | Trademark / branding — is the goal full visual clone (Microsoft logo, "Word" in title) or **"Word-like but distinct"** branding (e.g. "Writer" still in title bar)? Microsoft's logos are trademarked; full reuse needs legal review. | Default to **"Writer"** in title (so it reads `Document1 - Writer`) and use a generic blue "W" icon shape — keeps the visual cue without trademark exposure. Owner overrides if licensing concerns are out of scope. |
-| Q3 | The Start screen (Backstage Home) — V1 skips it and opens blank by default. OK? | **Skip in V1**. Owner can flip the existing LO Start Center on if desired but the reference screenshot omits it. |
-| Q4 | Light theme vs Black theme — V1 ships Black only matching screenshot. Light theme V1.1? | Black only V1. Light theme is V1.1. |
-| Q5 | Fluent icon set — bundle the full MIT Fluent UI System Icons or vector-trace just the ~80 icons Writer ribbon actually needs to keep image size down? | **Full bundle** — the icon set zipped is ~3 MB, and downstream phases (Calc, Impress) will need more. Single source of truth wins over re-tracing. |
-| Q6 | LO has 4 notebook bar variants (Tabbed, Tabbed Compact, Groupedbar Compact, Groupedbar Full, Contextual Single, Contextual Groups). Use the existing **Tabbed** variant as the base and rewrite its `.ui` content, or build a new variant from scratch? | **Rewrite Tabbed**. It already has the tabs-at-top + ribbon-body structure; rewriting the XML content is much cheaper than a new variant. |
-| Q7 | Aptos font — bundle in the binary? It's ~9 MB across all four faces (Aptos / Display / Serif / Mono). | **Bundle**. Without it the "Aptos 11 pt default" gets a substitution and Word parity breaks immediately. |
-| Q8 | If a Phase 4 change breaks Calc / Impress UI, side-effect doc + apply anyway? | **Per owner instruction**: yes, document side effects in `PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md` and continue. |
+| Q1 | Acrobat / extension tabs visible in the reference screenshot — we don't ship those, right? | ✅ confirmed by owner. Acrobat tab omitted. |
+| Q2 | Trademark / branding — `Document1 - Writer` + generic blue W icon, no Microsoft logos / Word name | ✅ confirmed by owner. |
+| Q3 | Start screen (Backstage Home) behavior | ✅ `soffice --writer` → blank document directly (skip Start Center). No-arg `soffice` keeps the existing LO Start Center (already implemented this way). |
+| Q4 | Black theme only in V1, other variants V1.1 | ✅ confirmed by owner. |
+| Q5 | Fluent UI System Icons full bundle | ✅ confirmed by owner. |
+| Q6 | Rewrite LO's existing Tabbed notebook bar variant | ✅ confirmed by owner. |
+| Q7 | Bundle Aptos font in the binary | ✅ confirmed by owner. |
+| Q8 | Document Calc / Impress side effects + continue | ✅ confirmed by owner. See [`PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md`](PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md) (created lazily on first side effect). |
+
+**Scope clarification (owner direction)**: Phase 4 wraps LO's **existing** functionality in Word's UI shell. We do **not** implement new Word features that LO lacks. Word features without LO equivalents are catalogued in [`PHASE4_MISSING_FEATURES.md`](PHASE4_MISSING_FEATURES.md) and either omitted, rendered as disabled buttons, or wired to LO equivalents — case by case. Anything in LO that can't be made to match Word's UI gets logged in [`PHASE4_BLOCKERS.md`](PHASE4_BLOCKERS.md) with a V2 fix sketch.
 
 ---
 
@@ -415,6 +417,9 @@ Estimated effort: P4-A through P4-E land first as a "visual MVP" — the chrome 
 - [`docs/architecture/ROADMAP.md`](ROADMAP.md) §3.4 — Phase 4 entry in the canonical plan
 - [`docs/USAGE.md`](../USAGE.md) — operational commands (will need updates for default opening behavior)
 - [`docs/architecture/PHASE3_LOGGER_DESIGN.md`](PHASE3_LOGGER_DESIGN.md) — logger contract Phase 4 must not break
+- [`docs/architecture/PHASE4_BLOCKERS.md`](PHASE4_BLOCKERS.md) — running log of LO features that can't reach Word UI parity (populated during implementation)
+- [`docs/architecture/PHASE4_MISSING_FEATURES.md`](PHASE4_MISSING_FEATURES.md) — catalog of Word features LO doesn't have; tracks omit / disabled / wire-to decisions
+- [`docs/architecture/PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md`](PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md) — cross-app side effects (created lazily on first occurrence)
 - Owner-supplied reference screenshot — committed alongside this doc as `phase4-word-reference.png` if storage permits, else linked from the commit message
 
 ### Research dispatch outputs (archived in commit history of this branch)
