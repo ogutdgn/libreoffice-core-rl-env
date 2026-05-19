@@ -17,6 +17,12 @@
 #include <sstream>
 #include <string>
 
+#include <com/sun/star/awt/FontSlant.hpp>
+#include <com/sun/star/awt/FontUnderline.hpp>
+#include <com/sun/star/awt/FontWeight.hpp>
+#include <com/sun/star/awt/Point.hpp>
+#include <com/sun/star/beans/UnknownPropertyException.hpp>
+#include <com/sun/star/beans/XPropertySet.hpp>
 #include <com/sun/star/container/XEnumeration.hpp>
 #include <com/sun/star/container/XEnumerationAccess.hpp>
 #include <com/sun/star/frame/Desktop.hpp>
@@ -26,6 +32,9 @@
 #include <com/sun/star/frame/XModel.hpp>
 #include <com/sun/star/text/XText.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
+#include <com/sun/star/text/XTextRange.hpp>
+#include <com/sun/star/text/XTextViewCursor.hpp>
+#include <com/sun/star/text/XTextViewCursorSupplier.hpp>
 #include <com/sun/star/uno/Exception.hpp>
 #include <com/sun/star/uno/XComponentContext.hpp>
 #include <com/sun/star/util/XModifiable.hpp>
@@ -137,6 +146,56 @@ uint32_t countParagraphs(const uno::Reference<text::XText>& xText)
     return count;
 }
 
+// --- Property helpers -------------------------------------------------
+//
+// Each property fetch is wrapped in try/catch — a cursor pointing at
+// document boundaries (no character span) can throw
+// UnknownPropertyException on some property names, and a non-Writer
+// cursor wouldn't expose the Char* family at all. Failure leaves the
+// out-parameter at its default so the JSON snapshot still composes.
+
+template <typename T>
+bool tryGetProp(const uno::Reference<beans::XPropertySet>& xProps,
+                const char* propName, T& out)
+{
+    if (!xProps.is()) return false;
+    try
+    {
+        uno::Any v = xProps->getPropertyValue(OUString::createFromAscii(propName));
+        return (v >>= out);
+    }
+    catch (const uno::Exception&)
+    {
+        return false;
+    }
+}
+
+bool propIsBold(const uno::Reference<beans::XPropertySet>& xProps)
+{
+    float weight = awt::FontWeight::NORMAL;
+    if (!tryGetProp(xProps, "CharWeight", weight)) return false;
+    return weight >= awt::FontWeight::SEMIBOLD;
+}
+
+bool propIsItalic(const uno::Reference<beans::XPropertySet>& xProps)
+{
+    sal_Int16 slant = static_cast<sal_Int16>(awt::FontSlant_NONE);
+    awt::FontSlant fs;
+    if (tryGetProp(xProps, "CharPosture", fs))
+        return fs != awt::FontSlant_NONE;
+    // Some properties expose the enum as int16; try that path too.
+    if (tryGetProp(xProps, "CharPosture", slant))
+        return slant != static_cast<sal_Int16>(awt::FontSlant_NONE);
+    return false;
+}
+
+bool propIsUnderline(const uno::Reference<beans::XPropertySet>& xProps)
+{
+    sal_Int16 ul = awt::FontUnderline::NONE;
+    if (!tryGetProp(xProps, "CharUnderline", ul)) return false;
+    return ul != awt::FontUnderline::NONE;
+}
+
 // --- Snapshot builder -------------------------------------------------
 
 void writeSnapshot(const std::string& json)
@@ -179,10 +238,13 @@ void buildAndWrite()
         // XTextDocument cast fails on Calc / Impress; we just emit a
         // bare snapshot with no counts in that case.
         uint32_t wordCount = 0, charCount = 0, paraCount = 0;
+        bool isWriter = false;
+        uno::Reference<text::XText> xText;
         if (uno::Reference<text::XTextDocument> xTextDoc(xModel, uno::UNO_QUERY);
             xTextDoc.is())
         {
-            uno::Reference<text::XText> xText = xTextDoc->getText();
+            isWriter = true;
+            xText = xTextDoc->getText();
             if (xText.is())
             {
                 const OUString full = xText->getString();
@@ -192,20 +254,83 @@ void buildAndWrite()
             }
         }
 
+        // View cursor — current caret position, selected text, and the
+        // character properties at the cursor. All Writer-specific; for
+        // Calc / Impress the cast fails and these fields are omitted.
+        sal_Int16 cursorPage = 0;
+        awt::Point cursorPos{};
+        bool cursorAvail = false;
+        bool hasSelection = false;
+        OUString selectionText;
+        uno::Reference<beans::XPropertySet> xCursorProps;
+        OUString fontName;
+        float fontHeight = 0.0f;
+        sal_Int32 fontColor = -1;
+        if (isWriter)
+        {
+            try
+            {
+                uno::Reference<text::XTextViewCursorSupplier> xSupp(xCtrl, uno::UNO_QUERY);
+                if (xSupp.is())
+                {
+                    uno::Reference<text::XTextViewCursor> xVC = xSupp->getViewCursor();
+                    if (xVC.is())
+                    {
+                        cursorAvail = true;
+                        cursorPage = xVC->getPage();
+                        cursorPos = xVC->getPosition();
+                        uno::Reference<text::XTextRange> xRange(xVC, uno::UNO_QUERY);
+                        if (xRange.is())
+                            selectionText = xRange->getString();
+                        hasSelection = !selectionText.isEmpty();
+                        xCursorProps.set(xVC, uno::UNO_QUERY);
+                        tryGetProp(xCursorProps, "CharFontName", fontName);
+                        tryGetProp(xCursorProps, "CharHeight", fontHeight);
+                        tryGetProp(xCursorProps, "CharColor", fontColor);
+                    }
+                }
+            }
+            catch (const uno::Exception&)
+            {
+            }
+        }
+
         std::ostringstream os;
         os << '{'
            << R"("schemaVersion":1,)"
            << R"("capturedAt":)" << wallTimeMs() << ','
            << R"("document":{)"
            <<     R"("url":")" << escapeOUString(docUrl) << R"(",)"
-           <<     R"("modified":)" << (modified ? "true" : "false")
+           <<     R"("modified":)" << (modified ? "true" : "false") << ','
+           <<     R"("isWriter":)" << (isWriter ? "true" : "false")
            << R"(},)"
            << R"("counts":{)"
            <<     R"("paragraphs":)" << paraCount << ','
            <<     R"("words":)" << wordCount << ','
            <<     R"("characters":)" << charCount
-           << R"(})"
-           << '}';
+           << R"(})";
+        if (cursorAvail)
+        {
+            os << R"(,"cursor":{)"
+               <<     R"("page":)" << static_cast<int>(cursorPage) << ','
+               <<     R"("x":)" << cursorPos.X << ','
+               <<     R"("y":)" << cursorPos.Y
+               << R"(},)"
+               << R"("selection":{)"
+               <<     R"("hasSelection":)" << (hasSelection ? "true" : "false") << ','
+               <<     R"("length":)" << selectionText.getLength() << ','
+               <<     R"("text":")" << escapeOUString(selectionText) << R"(")"
+               << R"(},)"
+               << R"("format":{)"
+               <<     R"("font":")" << escapeOUString(fontName) << R"(",)"
+               <<     R"("size":)" << fontHeight << ','
+               <<     R"("bold":)" << (propIsBold(xCursorProps) ? "true" : "false") << ','
+               <<     R"("italic":)" << (propIsItalic(xCursorProps) ? "true" : "false") << ','
+               <<     R"("underline":)" << (propIsUnderline(xCursorProps) ? "true" : "false") << ','
+               <<     R"("color":)" << fontColor
+               << R"(})";
+        }
+        os << '}';
         writeSnapshot(os.str());
     }
     catch (const uno::Exception&)
