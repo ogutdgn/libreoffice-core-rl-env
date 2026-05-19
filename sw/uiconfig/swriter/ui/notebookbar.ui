@@ -4160,7 +4160,7 @@
                                 <property name="can-focus">True</property>
                                 <property name="valign">center</property>
                                 <property name="vexpand">True</property>
-                                <property name="toolbar-style">both</property>
+                                <property name="toolbar-style">icons</property>
                                 <property name="show-arrow">False</property>
                                 <property name="icon_size">3</property>
                                 <child>
@@ -4245,7 +4245,7 @@
                                 <property name="can-focus">True</property>
                                 <property name="valign">center</property>
                                 <property name="vexpand">True</property>
-                                <property name="toolbar-style">both</property>
+                                <property name="toolbar-style">icons</property>
                                 <property name="show-arrow">False</property>
                                 <property name="icon_size">3</property>
                                 <child>
@@ -4330,7 +4330,7 @@
                                 <property name="can-focus">True</property>
                                 <property name="valign">center</property>
                                 <property name="vexpand">True</property>
-                                <property name="toolbar-style">both</property>
+                                <property name="toolbar-style">icons</property>
                                 <property name="show-arrow">False</property>
                                 <property name="icon_size">3</property>
                                 <child>

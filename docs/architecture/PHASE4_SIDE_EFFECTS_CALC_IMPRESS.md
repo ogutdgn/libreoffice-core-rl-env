@@ -56,3 +56,4 @@ For now the tab bar stays hidden across all three.
 | # | Subsystem | File / config | Phase 4 change | Calc impact | Impress impact |
 |---|---|---|---|---|---|
 | 1 | Sidebar tab bar | `sfx2/source/sidebar/SidebarController.cxx` line ~505 | Disabled `mpTabBar->Show()` | tab bar hidden, panes summon-only | tab bar hidden, panes summon-only |
+| 2 | Sidebar deck auto-open | `sfx2/source/sidebar/SidebarController.cxx` `RequestOpenDeck` | Made no-op; deck never auto-summons | Calc Properties / Functions panes don't auto-pop on selection; users need F5 / F11 etc. | Impress Slide Transition / Animation panes don't auto-pop on slide selection; same shortcut workaround |

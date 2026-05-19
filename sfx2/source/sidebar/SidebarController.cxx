@@ -1260,13 +1260,16 @@ void SidebarController::RequestCloseDeck()
 
 void SidebarController::RequestOpenDeck()
 {
-    SfxSplitWindow* pSplitWindow = GetSplitWindow();
-    if ( pSplitWindow && !pSplitWindow->IsFadeIn() )
-        // tdf#83546 Collapsed sidebar should expand first
-        pSplitWindow->FadeIn();
-
-    mbIsDeckRequestedOpen = true;
-    UpdateDeckOpenState();
+    // Phase 4 (Writer UI parity with MS Word): the sidebar deck is
+    // suppressed entirely. Word's blank-doc UI has no auto-summoned
+    // task pane; LO would otherwise pop the Properties / Styles /
+    // Navigator deck on certain context changes. Make every
+    // RequestOpenDeck a no-op so the deck never paints. Users that
+    // genuinely need a sidebar can still trigger one through the
+    // specific deck UNO commands (F11 Designer, F5 Navigator) which
+    // call openDeck directly; this hook only blocks the implicit
+    // path.
+    return;
 }
 
 bool SidebarController::IsDeckOpen(const sal_Int32 nIndex)
