@@ -75,7 +75,13 @@ SidebarChildWindow::SidebarChildWindow(vcl::Window* pParentWindow, sal_uInt16 nI
 
     SetHideNotDelete(true);
 
-    pDockWin->Show();
+    // Phase 4 (Writer UI parity with MS Word): do NOT Show the
+    // docking window — Word has no draggable right-edge splitter
+    // that reveals a Properties / Styles panel. The SidebarController
+    // is wired (so deck dispatches like F5 / F11 still work) but the
+    // dock window itself stays hidden so no splitter appears on the
+    // document area's right edge for the user to drag and summon.
+    // pDockWin->Show();  // intentionally not called.
 }
 
 sal_Int32 SidebarChildWindow::GetDefaultWidth(vcl::Window const* pWindow)
