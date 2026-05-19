@@ -40,7 +40,7 @@ ship downstream. That observation has driven several scope decisions
 | 1 | Incremental module deletions (1A–1G) | ✓ done — `d38f631d4` | 7 groups, build verified between each. See §3.1. |
 | 2 | Folder restructure (`apps/` + `core/`) | **cancelled** | Source cosmetics don't ship to RL agents in the docker image; the restructure cost (cross-module path rewrites, hybrid intermediate states) outweighed the developer-ergonomics gain. See §4.1. |
 | 3 | Writer logger | ✓ V1.1 done — `e2515c989` | Always-on event log: raw / semantic / outcome. See §3.3. |
-| 4 | Writer UI redesign (→ MS Word) | future | Visual + interaction parity. See §3.4 sketch. |
+| 4 | Writer UI redesign (→ MS Word) | ✓ V1 done | Tabbed UI default + Word tab order + new Design/Mailings/Help tabs + Dark theme + sifr_dark icons. See §3.4. |
 | 5 | Calc logger + UI redesign (→ MS Excel) | future | Same recipe as Phases 3 + 4 for Calc. |
 | 6 | Impress logger + UI redesign (→ MS PowerPoint) | future | Same recipe for Impress. |
 | 7 | Docker multi-stage image | future | Build-stage → runtime-stage with pre-built `instdir/`. |
@@ -127,30 +127,52 @@ activate. V1.1 added:
 - Step 13: Always-on default activation + 50-session cleanup
 - Step 14: `rllogger-export.py` consolidator
 
-### 3.4 Phase 4 — Writer UI redesign (future, sketch)
+### 3.4 Phase 4 — Writer UI redesign ✓ (V1)
 
 Goal: visual + interaction parity with Microsoft Word, so an RL
 agent trained on Word transfers to Writer with minimal adaptation.
 
-Open questions (to resolve when Phase 4 starts):
+**What shipped in V1**:
 
-- **Ribbon vs. classic menus.** LibreOffice has a "Tabbed" notebook
-  bar variant resembling Word's ribbon, but its widget structure
-  isn't a 1:1 match. Two paths: (a) extend the tabbed notebook bar
-  to closer parity; (b) build a new ribbon container. (a) is much
-  less invasive.
-- **Theme / iconography.** Match Word's Fluent UI fidelity vs.
-  ship a "Word-like but distinct" theme — there's a licensing /
-  trademark question if we go full visual clone.
-- **Sidebar restructure.** Word's right-rail vs. LO's left-rail
-  sidebar; depends on parity ambition.
-- **Default settings sweep.** Default font (Calibri vs. Liberation
-  Serif), default paragraph spacing, auto-correct rules, autosave
-  cadence — many small UX gaps.
+- Default UI is LO's Tabbed notebook bar (was: classic menubar +
+  multi-row toolbar). `soffice --writer` opens directly into the
+  Word-style ribbon layout.
+- Tab order rewritten to match Word exactly: File · Home · Insert ·
+  Design · Layout · References · Mailings · Review · View · Help.
+  Extension and Tools tabs deleted (Word has neither).
+- Three new tabs (Design / Mailings / Help) added with sensible LO
+  command mappings. Word features without LO equivalents catalogued
+  in [`PHASE4_MISSING_FEATURES.md`](PHASE4_MISSING_FEATURES.md) —
+  19 entries (Themes / Style Sets / Address Block / Track Changes
+  helpers / etc.).
+- Dark theme as default: `COLOR_SCHEME_LIBREOFFICE_DARK` for
+  document area + `ApplicationAppearance=2` (Dark) for chrome.
+  Title bar / ribbon / canvas all dark; page stays white.
+- Icon theme set to `sifr_dark` — LO's existing monochromatic
+  line-icon variant, closest visual match to Word's Fluent UI.
+  True Fluent bundle deferred to V2 (~1900 icons, asset import
+  work).
 
-Expected dependency: builds on Phase 3 logger so the same agent
-training pipeline can drive both Word and Writer. No expected
-dependency on Phases 5–7.
+**Resolved trade-offs** (decisions captured in §4.3):
+
+- Branding: "Document1 - Writer" + generic blue W icon (not full
+  Word clone).
+- Acrobat tab: dropped (LO doesn't ship the Adobe plugin).
+- Start screen on no-arg launch: kept LO's existing Start Center.
+  `--writer` bypasses it.
+- Notebook bar variant: rewrote LO's existing Tabbed mode rather
+  than building a new ribbon container.
+
+**Deferred to V2** (see [`PHASE4_BLOCKERS.md`](PHASE4_BLOCKERS.md)
+for the full sketch):
+
+- Custom title bar (QAT + Search + Account/Comments/Editing/Share)
+- Status bar item reorder to exact Word order
+- Aptos default body font + default page settings (margins, line
+  spacing, paragraph spacing) — both gated on either a code patch
+  to `sw/source/core/swdoc/docnew.cxx` or a default template
+- Sidebar / task pane order audit
+- Microsoft Fluent UI System Icons full bundle
 
 ### 3.5 Phases 5–6 — Calc + Impress
 

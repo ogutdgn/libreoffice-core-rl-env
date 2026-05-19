@@ -139,7 +139,7 @@ phase moves.
 | **1** | Incremental module deletions (1A–1G, build verified each) | ✓ done — `d38f631d4` |
 | **2** | (Optional) folder restructure into `apps/` + `core/` | **cancelled — see note below** |
 | **3** | Writer: structured user-action logger | ✓ V1.1 done — `e2515c989` (see §4.3) |
-| **4** | Writer UI redesign (→ MS Word visual/interaction parity) | future |
+| **4** | Writer UI redesign (→ MS Word visual/interaction parity) | ✓ V1 done — `e5604fdcd` (see §4.4) |
 | **5** | Calc: logger + UI redesign (→ MS Excel) | future |
 | **6** | Impress: logger + UI redesign (→ MS PowerPoint) | future |
 | **7** | Docker multi-stage image for distribution | future |
@@ -314,6 +314,44 @@ downstream tooling wants one document.
 
 Full design and step-by-step verification log in
 [`docs/architecture/PHASE3_LOGGER_DESIGN.md`](docs/architecture/PHASE3_LOGGER_DESIGN.md).
+
+### 4.4 Phase 4 — Writer UI (V1 contract)
+
+Writer's default chrome now matches MS Word's visual layout — the
+ribbon shape, tab order, and dark theme — using LO's existing
+notebook bar infrastructure and dark color scheme. Full design and
+step-by-step verification in
+[`docs/architecture/PHASE4_WRITER_UI_DESIGN.md`](docs/architecture/PHASE4_WRITER_UI_DESIGN.md).
+
+**Default UI on launch:**
+
+| Element | V1 value |
+|---|---|
+| Toolbar mode | Tabbed notebook bar (was: classic menubar + multi-row toolbar) |
+| Tab order | File · Home · Insert · Design · Layout · References · Mailings · Review · View · Help (Word order) |
+| Color scheme | LO Dark (`COLOR_SCHEME_LIBREOFFICE_DARK`) |
+| Application appearance | Dark (`Common::Appearance::ApplicationAppearance = 2`) |
+| Icon theme | `sifr_dark` (Fluent-like monochromatic line icons) |
+| Start screen | `soffice --writer` → blank doc directly; no-arg → Start Center |
+
+**Tab content mapping**: Word groups within each tab are populated
+with LO equivalent `.uno:*` commands. The Design / Mailings / Help
+tabs are new (LO didn't have them); they're populated with LO's
+existing watermark / mail merge / help commands. Word features
+without LO equivalents are catalogued in
+[`PHASE4_MISSING_FEATURES.md`](docs/architecture/PHASE4_MISSING_FEATURES.md)
+(19 entries; Themes / Style Sets / Address Block / Track Changes
+helpers / etc.).
+
+**Deferred to V2** (see [`PHASE4_BLOCKERS.md`](docs/architecture/PHASE4_BLOCKERS.md)
+for the full sketch of each):
+
+- Custom title bar with QAT + Microsoft Search + Account / Comments / Editing / Share cluster
+- Status bar item reorder to exact Word order
+- Aptos font bundle + set as default body font
+- Default page settings (1-inch margins, 1.08 line spacing, 8pt para after)
+- Sidebar / task pane order audit
+- True Microsoft Fluent UI System Icons bundle (V1 uses `sifr_dark` LO theme)
 
 ---
 

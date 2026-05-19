@@ -28,4 +28,37 @@ future Claude pickups can see the actual code path.
 
 ## Active blockers
 
-*(populated during implementation — empty for now)*
+### Custom title bar with QAT + Search + Account/Comments/Editing/Share (P4-G)
+
+- **What we wanted**: Title bar redesigned per design spec §6 — left QAT (Save / Undo / Redo / Customize), centred Microsoft Search bar, right account avatar + Comments / Editing dropdown / Share button + OS controls.
+- **Why blocked**: LO's window decoration is owned by the OS / GTK shell; LO does not draw its own title bar. Replicating Word's title bar means either patching `vcl/source/window/menubarwindow.cxx` to render a custom header band inside the LO frame (touches every app), or building a header widget mounted above the notebook bar and hiding the native title bar (forces client-side decoration).
+- **What we shipped**: LO's default title bar (just the document name + close button). The QAT-like buttons that already render above the notebook bar (Save / Undo / Redo / Print) stay; no new chrome added in V1.
+- **V2 fix sketch**: Add a custom header band as a child of `sw/source/uibase/uno/SwView`'s top-level frame. Inject a QAT widget, a search field, and a buttons-cluster anchored to the band. Hide the OS title bar through `SystemWindow::ShowSystemDecorations(false)`. Requires per-OS testing.
+
+### Status bar items per Word spec (P4-H)
+
+- **What we wanted**: Word's exact status bar items in Word's order — Page X of Y, spell check icon, Word count, predictions indicator, accessibility check, Track Changes / language conditional items, then right-anchored zoom slider + view mode trio + Focus toggle.
+- **Why blocked**: LO's status bar is hard-coded in `sw/source/uibase/ribbar/swstbcfg.cxx` and per-app similarly. Reordering / adding / removing items is not driven by an `.xml` config like the toolbar; it requires C++ changes to the SwView slot wiring.
+- **What we shipped**: LO's existing status bar (Page X of Y, word count, page style, language, zoom, view shortcuts). Already ~70% match with Word's set; precise reordering and adding Predictions / Accessibility indicators is V2.
+- **V2 fix sketch**: Patch SwView::CreateSubShellStatusBar to emit slots in Word's order; add new slots for the missing indicators (or wire to placeholder no-ops with the Word labels).
+
+### Aptos default body font (P4-I)
+
+- **What we wanted**: New documents open with Aptos (Body) 11pt as the default character style — Word's post-2024 default.
+- **Why blocked**: (1) Aptos font binaries are distributed by Microsoft under a CC-BY-SA-ish licence but bundling them in the LO source tree raises packaging questions. (2) The default body font in Writer is not exposed via officecfg — it comes from `sw/source/core/swdoc/docnew.cxx` defaulting to "Liberation Serif" / "Liberation Sans" / "Liberation Mono" based on the `vcl::DefaultFontConfiguration` lookup which itself reads from a per-locale registry, plus the `DEFAULTFONT_LATIN_*` enums in vcl. Changing it requires either a code patch or providing a custom default template.
+- **What we shipped**: LO's existing default body font (Liberation Serif 12pt).
+- **V2 fix sketch**: Bundle Aptos fonts (Aptos / Aptos Display / Aptos Serif / Aptos Mono) into `extras/source/truetype/fonts/`. Add a default-template approach: ship `extras/source/templates/officorr/Aptos.ott` and register it as `Standard` template via `bootstrap.xcu`. Or patch `docnew.cxx` to use Aptos with Liberation Serif fallback.
+
+### Default page settings to match Word (P4-J)
+
+- **What we wanted**: New documents open with Word's defaults — 1-inch margins (2.54cm), 1.08 line spacing, 8pt paragraph spacing after.
+- **Why blocked**: Same path as Aptos — the default page style ("Standard") is constructed in `sw/source/core/swdoc/docnew.cxx`. Changing the defaults system-wide either patches that code path or provides a custom default template.
+- **What we shipped**: LO's defaults (2cm margins, 1.0 line spacing, 0pt para spacing). Visible mismatch with Word but doesn't affect the agent training value — RL agents care about commands and document state, not absolute margins.
+- **V2 fix sketch**: Same as P4-I — default-template approach is cleanest because it also handles font, margins, line spacing, and para spacing in one drop-in.
+
+### Sidebar / task pane order pass (P4-K)
+
+- **What we wanted**: Match Word's pane positions — Styles right-dock by default (matches), Navigation pane left-dock (matches Ctrl+F behavior), Clipboard left-dock.
+- **Why blocked**: LO's current sidebar config already aligns reasonably (Styles right, Navigation left via Ctrl+F). Word's specific docking nuances (e.g. floating panel preference) are minor differences.
+- **What we shipped**: LO's existing sidebar behaviour, unchanged.
+- **V2 fix sketch**: Audit `sfx2/uiconfig/sfx/sidebar/` deck configs and the per-app `sidebar/Sidebar.xcu` defaults; touch any panel whose default dock position differs from Word.
