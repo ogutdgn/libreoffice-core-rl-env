@@ -17157,18 +17157,14 @@
     <property name="mode">vertical</property>
     <property name="ignore-hidden">True</property>
     <widgets>
-      <widget name="LineA7"/>
       <widget name="box76"/>
-      <widget name="GroupB16"/>
     </widgets>
   </object>
   <object class="GtkSizeGroup" id="2ndRow">
     <property name="mode">vertical</property>
     <property name="ignore-hidden">True</property>
     <widgets>
-      <widget name="LineB8"/>
       <widget name="GroupB11"/>
-      <widget name="GroupB15"/>
     </widgets>
   </object>
 </interface>
