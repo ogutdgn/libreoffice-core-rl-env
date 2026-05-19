@@ -226,12 +226,33 @@ The module always builds and links, but installs no hooks unless the
 
 **Activation**
 
+The logger is **always-on by default**. Every soffice run creates a
+session directory under a platform-dependent base path:
+
+| OS | Default base |
+|---|---|
+| Linux / macOS | `$HOME/.lo-rl-logs/` |
+| Windows | `%LOCALAPPDATA%\lo-rl-logs\` (or `%USERPROFILE%\.lo-rl-logs\`) |
+| fallback | `<system temp>/lo-rl-logs/` |
+
+`LO_RL_LOG_DIR=/path` overrides the base for redirection (CI, tests).
+`LO_RL_LOG_DISABLE=1` short-circuits the entire logger (zero overhead).
+
+The most recent 50 session directories are kept; older ones get
+pruned on the next startup.
+
 ```sh
+# Default — logs go to ~/.lo-rl-logs/<sessionId>/
+instdir/program/soffice --writer --norestore
+
+# Explicit override (smoke tests, CI):
 LO_RL_LOG_DIR=/tmp/rl-test instdir/program/soffice --writer --norestore
+
+# Opt-out:
+LO_RL_LOG_DISABLE=1 instdir/program/soffice --writer --norestore
 ```
 
-On startup the logger creates `$LO_RL_LOG_DIR/<sessionId>/` containing
-three append-only / overwrite files:
+The session directory contains three files:
 
 | File | Contents | Cadence |
 |---|---|---|
@@ -258,12 +279,28 @@ Each semantic line carries `name`, `rawName` (raw `.uno:` URL),
 are deferred to the first VCL event because the service manager isn't
 bootstrapped when `initialize()` runs.
 
+**Consuming the logs**
+
+`rllogger/util/rllogger-export.py` consolidates one session directory
+into a single JSON file matching the cua-bench `exportLog()` shape:
+
+```sh
+rllogger/util/rllogger-export.py ~/.lo-rl-logs/<sessionId> -o session.json
+```
+
+The output `{schemaVersion, sessionId, exportedAt, raw, semantic, outcome}`
+is what RL training / replay pipelines should consume — raw / semantic
+are kept as JSONL for live tailing and crash resilience, but most
+downstream tooling wants one document.
+
 **Deferred to V2**
 
 - Final outcome flush at shutdown (UNO teardown segfaults from atexit)
-- Cursor / selection / format-at-cursor fields in outcome snapshot
+- Whole-document content dump in outcome snapshot
 - Replay tool that drives Writer headlessly from `raw.jsonl`
 - Password / form-field auto-redaction
+- Calc + Impress command map entries (currently pass through as raw `.uno:` URLs)
+- Calc + Impress outcome snapshot (currently empty counts when not Writer)
 
 Full design and step-by-step verification log in
 [`docs/architecture/PHASE3_LOGGER_DESIGN.md`](docs/architecture/PHASE3_LOGGER_DESIGN.md).
