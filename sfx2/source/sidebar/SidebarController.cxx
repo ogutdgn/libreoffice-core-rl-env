@@ -501,8 +501,14 @@ void SidebarController::NotifyResize()
 
         // Now place the tab bar.
         mpTabBar->setPosSizePixel(nTabX, 0, nTabBarDefaultWidth, nHeight);
-        if (!comphelper::LibreOfficeKit::isActive())
-            mpTabBar->Show(); // Don't show TabBar in LOK.
+        // Phase 4 (Writer UI parity with MS Word): the persistent
+        // right-edge tab bar isn't part of Word's blank-doc UI. Keep
+        // the tab bar hidden by default; users can still summon the
+        // sidebar via View → Sidebar (.uno:Sidebar) or Ctrl+F5.
+        // LOK already skipped showing it; we extend that to native UI.
+        // Side effect for Calc/Impress: same hiding applies — see
+        // docs/architecture/PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md.
+        // mpTabBar->Show(); // intentionally not called.
     }
 
     // Determine if the closer of the deck can be shown.
