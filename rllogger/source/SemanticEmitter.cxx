@@ -94,6 +94,77 @@ uint64_t wallTimeMs()
     return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
+// Serialize one uno::Any into a JSON value. Type-dispatched in order
+// of decreasing specificity: bool / integer / float / string / fall-
+// back to type-name placeholder. The Any extraction operator (>>=)
+// returns false when the type doesn't match, so cascading attempts
+// is cheap. Sequences and structs land in the placeholder bucket —
+// dispatch args carrying nested structs are rare and serializing
+// them recursively isn't worth the code in V1.
+std::string serializeAny(const uno::Any& aAny)
+{
+    {
+        bool b = false;
+        if (aAny >>= b) return b ? "true" : "false";
+    }
+    {
+        sal_Int32 i32 = 0;
+        if (aAny >>= i32)
+        {
+            std::ostringstream os;
+            os << i32;
+            return os.str();
+        }
+    }
+    {
+        sal_Int16 i16 = 0;
+        if (aAny >>= i16)
+        {
+            std::ostringstream os;
+            os << static_cast<int>(i16);
+            return os.str();
+        }
+    }
+    {
+        sal_Int64 i64 = 0;
+        if (aAny >>= i64)
+        {
+            std::ostringstream os;
+            os << i64;
+            return os.str();
+        }
+    }
+    {
+        double d = 0.0;
+        if (aAny >>= d)
+        {
+            std::ostringstream os;
+            os << d;
+            return os.str();
+        }
+    }
+    {
+        float f = 0.0f;
+        if (aAny >>= f)
+        {
+            std::ostringstream os;
+            os << f;
+            return os.str();
+        }
+    }
+    {
+        OUString s;
+        if (aAny >>= s)
+        {
+            return std::string("\"") + escapeOUString(s) + "\"";
+        }
+    }
+    // Unknown / nested type — emit a placeholder carrying the UNO
+    // type name so consumers can at least see the shape.
+    const OUString typeName = aAny.getValueTypeName();
+    return std::string("\"<") + escapeOUString(typeName) + ">\"";
+}
+
 // Map the most recent raw event onto a coarse trigger label. Reads
 // the snapshot maintained by RawCapture. The 500 ms staleness gate
 // keeps dispatches that arrive long after any UI input — typically
@@ -194,7 +265,21 @@ public:
             os << R"("rawEventIdRange":["raw-)" << gesture.firstId
                << R"(","raw-)" << gesture.lastId << R"("],)";
         }
-        os << R"("argCount":)" << lArguments.getLength()
+        // Argument introspection: emit each PropertyValue's name and
+        // type-dispatched value. Duplicate names (rare but legal in
+        // PropertyValue sequences) end up as last-wins in JSON object
+        // form; the raw count is still emitted alongside so callers
+        // can detect when a dedup happened.
+        os << R"("args":{)";
+        const sal_Int32 nArgs = lArguments.getLength();
+        for (sal_Int32 i = 0; i < nArgs; ++i)
+        {
+            const beans::PropertyValue& pv = lArguments[i];
+            if (i > 0) os << ',';
+            os << '"' << escapeOUString(pv.Name) << "\":" << serializeAny(pv.Value);
+        }
+        os << "},"
+           << R"("argCount":)" << nArgs
            << '}';
         persist::enqueueSemantic(os.str());
     }
