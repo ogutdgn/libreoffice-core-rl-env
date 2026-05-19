@@ -1,11 +1,16 @@
-# Phase 3 — Writer Logger Design (V1)
+# Phase 3 — Writer Logger Design (V1.1)
 
-> Status: **V1 complete 2026-05-18** on `phase3/writer-logger` (head:
-> `854ec4ae3`). Smoke-tested in Writer: 1654 raw + 36 semantic + 1
-> outcome line, all three trigger heuristics (`shortcut` /
-> `toolbar` / `menu`) verified, `rawEventIdRange` correctly brackets
-> each gesture, `session_start` / `session_end` bracket each session,
-> headless `--terminate_after_init` exits 0.
+> Status: **V1.1 complete 2026-05-18** on `phase3/writer-logger`
+> (head: `203fd2785`). V1 (steps 1–10) shipped first and was then
+> extended with V1.1 (steps 11–14): UNO argument extraction, cursor
+> / selection / format-at-cursor in outcome, always-on default
+> activation, and the `rllogger-export.py` consolidator.
+>
+> Smoke-tested end-to-end: `.uno:Bold` emits `args:{"Bold":true}`,
+> `.uno:Color` emits the actual RGB value, outcome reports
+> `cursor{page,x,y}` + `format{bold:true}` after Ctrl+B, default
+> session dir is `~/.lo-rl-logs/<sessionId>/` without any env var,
+> `rllogger-export.py` produces a 10k-line consolidated JSON.
 >
 > Reference: `cua-bench/apps/figma/mock/src/logger/` (raw/semantic/outcome 3-tier pattern).
 
@@ -103,21 +108,29 @@ V1 command map (initial set, expandable):
 | Navigation | `.uno:GoUp`, `.uno:GoDown`, cursor moves | `cursor_move` |
 | Selection | `.uno:SelectAll` | `select_all` |
 
-Event shape:
+Event shape (as actually emitted in V1.1):
 
 ```jsonc
 {
   "schemaVersion": 1,
-  "sessionId": "20260518-120134-pid12345",
-  "eventId": "sem-0042",
-  "timestamp": 1721327891234,
-  "documentUrl": "file:///home/user/draft.odt",
-  "rawEventIdRange": ["raw-0099", "raw-0103"],
+  "eventId": "sem-7",
+  "timestamp": 1779145529833,
+  "documentUrl": "",
   "name": "format_bold",
-  "args": { "state": true },
-  "trigger": "shortcut"
+  "rawName": ".uno:Bold",
+  "trigger": "shortcut",
+  "rawEventIdRange": ["raw-1232", "raw-1233"],
+  "args": { "Bold": true },
+  "argCount": 1
 }
 ```
+
+`args` is built by walking every `beans::PropertyValue` in the
+dispatch's argument sequence and type-dispatching the inner
+`uno::Any` (`bool` → `true`/`false`, integer types → number,
+`OUString` → string, unknown / nested types → `"<type-name>"`
+placeholder). Compound values land as dot-prefixed keys: e.g.
+`.uno:Color` emits `{"Color.Color": 16744448, "Color.ComplexColorJSON": "…"}`.
 
 **Trigger detection.** A semantic event carries `trigger ∈
 {shortcut, toolbar, menu, context_menu, dialog, programmatic}`.
@@ -211,16 +224,24 @@ rllogger/
 
 ## 4. Activation and persistence
 
-**Activation.** A single environment variable, `LO_RL_LOG_DIR`,
-toggles the logger. If unset, the module loads but the entry
-function returns early and installs no hooks. If set, a session
-directory is created under that path.
+**Activation.** The logger is **always-on by default** as of V1.1
+(step 13). On boot it resolves a base directory:
+
+1. `LO_RL_LOG_DIR=/path` if set → that path verbatim.
+2. else `$HOME/.lo-rl-logs/` on Linux / macOS,
+   `%LOCALAPPDATA%\lo-rl-logs\` (or `%USERPROFILE%\.lo-rl-logs\`) on
+   Windows, falling back to the system temp dir.
+
+`LO_RL_LOG_DISABLE=1` short-circuits the entire entry function — no
+session dir, no hooks. Auto-cleanup keeps the most recent 50 session
+directories under the base; older ones are removed at startup so an
+always-on logger has a bounded footprint.
 
 **Session directory layout.**
 
 ```
-$LO_RL_LOG_DIR/
-└── 20260518-120134-pid12345/
+~/.lo-rl-logs/                       (or $LO_RL_LOG_DIR override)
+└── 2026-05-18-180510-pid920771/
     ├── raw.jsonl
     ├── semantic.jsonl
     └── outcome.jsonl
@@ -291,6 +312,10 @@ place. The renumbered table reflects the order actually executed.
 | 8 | `feat(rllogger): rawEventIdRange linking + gesture batching` | Ctrl+B → semantic event's `rawEventIdRange` covers the `[key.down ctrl, key.down b, key.up b, key.up ctrl]` window |
 | 9 | `feat(rllogger): session_start / session_end events + final outcome flush` | Each session's logs bracket with start and end events |
 | 10 | `docs(agents): logger architecture + V1 usage` | AGENTS.md updated; this design doc cross-referenced |
+| 11 | `feat(rllogger): UNO argument extraction` | `.uno:Bold` → `args:{"Bold":true}`; `.uno:Color` carries the actual RGB integer; `.uno:CharFontName` carries the font name string |
+| 12 | `feat(rllogger): rich outcome (cursor + selection + format)` | After Ctrl+B at a typed position, `outcome.jsonl` shows `cursor:{page:1,…}`, `selection:{hasSelection:false,…}`, `format:{bold:true,font:"…",size:12,…}` |
+| 13 | `feat(rllogger): always-on default activation + auto-cleanup` | `soffice --writer` with no env var creates `~/.lo-rl-logs/<sessionId>/`; `LO_RL_LOG_DISABLE=1` produces no session dir; existing 50+ session dirs trimmed on startup |
+| 14 | `feat(rllogger): rllogger-export.py consolidator` | `rllogger/util/rllogger-export.py <session-dir> -o out.json` produces a single JSON with `{schemaVersion, sessionId, exportedAt, raw[], semantic[], outcome}` matching cua-bench's `exportLog()` shape |
 
 ## 8. Risk register
 

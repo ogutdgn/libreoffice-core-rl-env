@@ -24,6 +24,38 @@ build doğrulamasından geçer, plan-driven yaklaşım terk edildi.
 
 ---
 
+## Mevcut durum: Phase 3 logger V1.1 entegre
+
+`dev` branchine merge edilmiş bir `rllogger/` modülü var. Soffice'i
+açtığın an arka planda her şeyi loglar — Writer için key/mouse, her
+`.uno:*` dispatch (args + trigger + gesture range), her 250 ms'de bir
+doküman snapshot (cursor + selection + format-at-cursor).
+
+- **Default'ta açık**, env var gerekmez. Loglar `~/.lo-rl-logs/<sessionId>/`'a yazılır
+- `LO_RL_LOG_DIR=/path` ile yönlendirilebilir (CI / test için)
+- `LO_RL_LOG_DISABLE=1` zero-overhead opt-out
+- Tüketici tarafı: `rllogger/util/rllogger-export.py <sessionDir> -o out.json` → tek paket session.json
+
+Tam sözleşme: [`AGENTS.md`](AGENTS.md) §4.3.
+Tasarım + verification: [`docs/architecture/PHASE3_LOGGER_DESIGN.md`](docs/architecture/PHASE3_LOGGER_DESIGN.md).
+
+Logger-ilgili değişiklik yapıyorsan tipik smoke test:
+
+```sh
+rm -rf /tmp/rl-test && LO_RL_LOG_DIR=/tmp/rl-test \
+  instdir/program/soffice --writer --norestore
+# Writer'da bir kaç komut çalıştır, kapat
+SESSION=$(ls -t /tmp/rl-test | head -1)
+cat /tmp/rl-test/$SESSION/semantic.jsonl
+cat /tmp/rl-test/$SESSION/outcome.jsonl
+```
+
+`make rllogger desktop` ile incremental build yeterli (sofficemain
+rllogger'a link olduğu için desktop da yeniden link gerekir; sw/sc/sd
+değil).
+
+---
+
 ## Claude-spesifik kurallar
 
 ### 1. Commit'lerde `Co-Authored-By: Claude` **ASLA** olmayacak

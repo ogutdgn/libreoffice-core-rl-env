@@ -218,11 +218,12 @@ work may build on:
 | VCL event listeners | `vcl/source/window/` | Lower-level: keystrokes, mouse, focus. Use only if `SfxDispatcher` granularity is insufficient. |
 | `SAL_INFO` / `SAL_WARN` | `sal/log.hxx` | Compile-time debug logging only. **Not** suitable for runtime user-action log. |
 
-### 4.3 Phase 3 — Writer logger (V1 contract)
+### 4.3 Phase 3 — Writer logger (V1.1 contract)
 
-A new top-level module `rllogger/` ships an opt-in event logger.
-The module always builds and links, but installs no hooks unless the
-`LO_RL_LOG_DIR` environment variable is set — zero overhead when off.
+A new top-level module `rllogger/` ships an **always-on** event logger.
+The module builds, links, and starts capturing the moment soffice
+launches. `LO_RL_LOG_DISABLE=1` short-circuits to the zero-overhead
+no-op path for any caller that wants the logger off.
 
 **Activation**
 
@@ -256,24 +257,28 @@ The session directory contains three files:
 
 | File | Contents | Cadence |
 |---|---|---|
-| `raw.jsonl` | VCL events (key/mouse/focus/command/gesture) | One line per event, written by a background thread |
-| `semantic.jsonl` | `.uno:*` dispatches mapped to RL-friendly names, plus `session_start`/`session_end` lifecycle events | One line per dispatch |
-| `outcome.jsonl` | Current document snapshot (URL, modified flag, paragraph / word / char counts) | Single line, overwritten every 250 ms |
+| `raw.jsonl` | VCL events (key/mouse/focus/command/gesture); per-event eventId, timestamp, sessionTime, modifiers, target | One line per event, written by a background thread |
+| `semantic.jsonl` | `.uno:*` dispatches with `name`, `rawName`, `trigger`, `rawEventIdRange`, `args:{…}`, plus `session_start`/`session_end` lifecycle markers | One line per dispatch |
+| `outcome.jsonl` | Current document state: URL, modified flag, paragraph / word / char counts, cursor `{page,x,y}`, selection `{hasSelection,length,text}`, format-at-cursor `{font,size,bold,italic,underline,color}` | Single line, overwritten every 250 ms |
 
 Each semantic line carries `name`, `rawName` (raw `.uno:` URL),
-`trigger` ∈ `{shortcut, toolbar, menu, click, programmatic}`, and a
-`rawEventIdRange` linking back to the gesture's raw events.
+`trigger` ∈ `{shortcut, toolbar, menu, click, programmatic}`, a
+`rawEventIdRange` linking back to the gesture's raw events, and
+`args` — a type-dispatched JSON object covering every `PropertyValue`
+the dispatch carried (e.g. `.uno:Color` emits `{"Color.Color":16744448}`,
+`.uno:Bold` emits `{"Bold":true}`).
 
 **Module map**
 
 | File | Role |
 |---|---|
-| `rllogger/source/rllogger.cxx` | Public entry: env probe, session dir, lifecycle events, atexit |
+| `rllogger/source/rllogger.cxx` | Public entry: env / disable flag, default base dir resolution, 50-session cleanup, session dir, lifecycle events, `std::atexit` |
 | `rllogger/source/RawCapture.cxx` | VCL global listener; tracks recent-raw snapshot + gesture window |
-| `rllogger/source/SemanticEmitter.cxx` | `XDispatchRecorder` impl attached to every Frame via `theGlobalEventBroadcaster` |
+| `rllogger/source/SemanticEmitter.cxx` | `XDispatchRecorder` impl attached to every Frame via `theGlobalEventBroadcaster`; serializes `args` |
 | `rllogger/source/CommandMap.cxx` | `.uno:Bold` → `format_bold` table (40+ Writer entries) |
-| `rllogger/source/OutcomeSnapshot.cxx` | 250 ms `AutoTimer` querying `XTextDocument` for word/char counts |
+| `rllogger/source/OutcomeSnapshot.cxx` | 250 ms `AutoTimer` querying `XTextDocument` + `XTextViewCursor` + `XPropertySet` for counts, cursor, selection, and format-at-cursor |
 | `rllogger/source/Persist.cxx` | Background writer thread + `std::deque` queues |
+| `rllogger/util/rllogger-export.py` | Consumer-side helper: consolidate one session dir into a single `session.json` |
 
 `sofficemain` calls `rllogger::initialize()` exactly once. UNO calls
 are deferred to the first VCL event because the service manager isn't
