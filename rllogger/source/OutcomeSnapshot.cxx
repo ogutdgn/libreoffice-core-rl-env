@@ -30,6 +30,7 @@
 #include <com/sun/star/frame/XDesktop2.hpp>
 #include <com/sun/star/frame/XFrame.hpp>
 #include <com/sun/star/frame/XModel.hpp>
+#include <com/sun/star/text/XPageCursor.hpp>
 #include <com/sun/star/text/XText.hpp>
 #include <com/sun/star/text/XTextDocument.hpp>
 #include <com/sun/star/text/XTextRange.hpp>
@@ -277,7 +278,15 @@ void buildAndWrite()
                     if (xVC.is())
                     {
                         cursorAvail = true;
-                        cursorPage = xVC->getPage();
+                        // getPage() lives on XPageCursor; the Writer
+                        // view cursor implements it but Calc / non-text
+                        // implementations may not, so query rather
+                        // than assume.
+                        if (uno::Reference<text::XPageCursor> xPC(xVC, uno::UNO_QUERY);
+                            xPC.is())
+                        {
+                            cursorPage = xPC->getPage();
+                        }
                         cursorPos = xVC->getPosition();
                         uno::Reference<text::XTextRange> xRange(xVC, uno::UNO_QUERY);
                         if (xRange.is())
