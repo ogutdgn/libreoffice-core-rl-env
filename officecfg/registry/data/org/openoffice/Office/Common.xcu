@@ -407,6 +407,9 @@
     </prop>
   </node>
   <node oor:name="Misc">
+    <prop oor:name="SymbolStyle">
+      <value>sifr_dark</value>
+    </prop>
     <prop oor:name="UseSystemColorDialog">
     </prop>
     <prop oor:name="UseSystemFileDialog">
