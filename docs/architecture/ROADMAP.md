@@ -233,6 +233,8 @@ footer in commit messages. This is captured in
   build commands, conventions
 - [`CLAUDE.md`](../../CLAUDE.md) — Claude-specific behavior rules
   (commit attribution, skill usage, debugging discipline)
+- [`docs/USAGE.md`](../USAGE.md) — day-to-day operational commands
+  (launching soffice, inspecting logs, exporting)
 - [`PHASE3_LOGGER_DESIGN.md`](PHASE3_LOGGER_DESIGN.md) — full design
   + step-by-step verification log for the Writer logger
 - [`WRITER_CALC_EXTRACTION.md`](WRITER_CALC_EXTRACTION.md) — Phase 1

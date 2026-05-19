@@ -205,3 +205,7 @@ gdb.txt
 
 # xml unit tests sometimes leave these lying around
 **/secmod.db
+
+# Claude Code workspace state (local user settings) — but skills are tracked
+.claude/settings.json
+.claude/settings.local.json
