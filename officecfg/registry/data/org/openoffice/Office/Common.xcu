@@ -401,10 +401,12 @@
       </node>
     </node>
   </node>
-  <node oor:name="Misc">
+  <node oor:name="Appearance">
     <prop oor:name="ApplicationAppearance">
       <value>2</value>
     </prop>
+  </node>
+  <node oor:name="Misc">
     <prop oor:name="UseSystemColorDialog">
     </prop>
     <prop oor:name="UseSystemFileDialog">
