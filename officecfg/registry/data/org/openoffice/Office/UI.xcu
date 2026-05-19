@@ -134,7 +134,7 @@
   </node>
   <node oor:name="ColorScheme">
     <prop oor:name="CurrentColorScheme">
-      <value>COLOR_SCHEME_LIBREOFFICE_AUTOMATIC</value>
+      <value>COLOR_SCHEME_LIBREOFFICE_DARK</value>
     </prop>
     <node oor:name="ColorSchemes">
       <node oor:name="COLOR_SCHEME_LIBREOFFICE_AUTOMATIC" oor:op="replace">
