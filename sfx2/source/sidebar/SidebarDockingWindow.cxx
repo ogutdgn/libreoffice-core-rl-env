@@ -55,6 +55,14 @@ SidebarDockingWindow::SidebarDockingWindow(SfxBindings* pSfxBindings, SidebarChi
     {
         GetOrCreateSidebarController();
     }
+
+    // Phase 4 (Writer UI parity with MS Word): keep the docking
+    // window itself hidden so no splitter handle appears on the
+    // right edge of the document area for the user to drag and
+    // reveal the Properties / Styles / Navigator panel. Word's
+    // blank-doc UI has no such draggable sidebar. F5 / F11 / etc.
+    // still open the specific dialog via different code paths.
+    Hide();
 }
 
 rtl::Reference<sfx2::sidebar::SidebarController>& SidebarDockingWindow::GetOrCreateSidebarController()
