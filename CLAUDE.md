@@ -11,7 +11,10 @@
 1. **[`AGENTS.md`](AGENTS.md) dosyasını oku.** Tüm proje bağlamı,
    workflow, build adımları, conventional commits, bilinen gotcha'lar
    orada.
-2. Sonra göreve dön.
+2. **[`docs/architecture/ROADMAP.md`](docs/architecture/ROADMAP.md)** —
+   tüm fazların canonical planı + decision log. AGENTS.md §4 buraya
+   link veriyor; bu dosya tek source-of-truth.
+3. Sonra göreve dön.
 
 ---
 

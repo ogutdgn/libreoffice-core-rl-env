@@ -128,12 +128,17 @@ in-place — `dev` stays clean.
 
 ## 4. The plan, simply stated
 
+Canonical, detailed roadmap lives in
+[`docs/architecture/ROADMAP.md`](docs/architecture/ROADMAP.md). The
+table below is the at-a-glance status; update both files when a
+phase moves.
+
 | Phase | What | Status |
 |---|---|---|
 | **0** | Verify vanilla master builds on owner's WSL setup | ✓ done — `942e4161c` |
 | **1** | Incremental module deletions (1A–1G, build verified each) | ✓ done — `d38f631d4` |
 | **2** | (Optional) folder restructure into `apps/` + `core/` | **cancelled — see note below** |
-| **3** | Writer: structured user-action logger | ✓ V1 done — `854ec4ae3` (see §4.3) |
+| **3** | Writer: structured user-action logger | ✓ V1.1 done — `e2515c989` (see §4.3) |
 | **4** | Writer UI redesign (→ MS Word visual/interaction parity) | future |
 | **5** | Calc: logger + UI redesign (→ MS Excel) | future |
 | **6** | Impress: logger + UI redesign (→ MS PowerPoint) | future |
