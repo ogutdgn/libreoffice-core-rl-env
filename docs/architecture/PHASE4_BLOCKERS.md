@@ -58,7 +58,18 @@ future Claude pickups can see the actual code path.
 
 ### Sidebar / task pane order pass (P4-K)
 
-- **What we wanted**: Match Word's pane positions — Styles right-dock by default (matches), Navigation pane left-dock (matches Ctrl+F behavior), Clipboard left-dock.
-- **Why blocked**: LO's current sidebar config already aligns reasonably (Styles right, Navigation left via Ctrl+F). Word's specific docking nuances (e.g. floating panel preference) are minor differences.
-- **What we shipped**: LO's existing sidebar behaviour, unchanged.
-- **V2 fix sketch**: Audit `sfx2/uiconfig/sfx/sidebar/` deck configs and the per-app `sidebar/Sidebar.xcu` defaults; touch any panel whose default dock position differs from Word.
+- **Original concern**: Match Word's pane positions — Styles right-dock by default, Navigation pane left-dock, Clipboard left-dock.
+- **Resolution (parity fixes)**: went further than originally planned — the entire right-edge sidebar is now suppressed for Writer (with Calc / Impress side effects documented in `PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md`). Three layers of fix in `sfx2/source/sidebar/`:
+  - `SidebarController.cxx` line ~505: `mpTabBar->Show()` removed → tab-bar icon strip never appears
+  - `SidebarController.cxx` `RequestOpenDeck()`: made no-op → deck never auto-summons on context change
+  - `SidebarChildWindow.cxx` factory line ~78: `pDockWin->Show()` removed → docking window stays hidden, no draggable splitter on document edge
+  - `SidebarDockingWindow.cxx` constructor: defensive `Hide()` for any path that still tries
+- F5 (Navigator), F11 (Styles) and other deck-specific dispatches still open their dialogs through separate code paths.
+
+### Home-tab group bottom labels (parity addition, not originally tracked)
+
+Word's ribbon groups have a small label under each group (Clipboard / Font / Paragraph / Styles / Editing / Voice / Editor / Add-ins). LO's `sfxlo-NotebookbarToolBox` doesn't render group labels natively. Parity fixes added a `GtkLabel` as the final child of each section's vertical wrapper, with the 8 labels suppressed in `solenv/sanitizers/ui/modules/swriter.suppr` as orphan-label false positives.
+
+### Large-button action-label override (parity caveat)
+
+The Voice / Editor / Add-ins large buttons in the Home tab reference UNO actions (`SpellingDialog`, `SpellingDialog`, `ExtensionManager`). GtkToolButton's XML `<property name="label">` is silently overridden by the action's own label, so the buttons would say "Spelling / Spelling / Extensions" instead of Word's "Dictate / Editor / Add-ins". Workaround: set `toolbar-style="icons"` on those three toolboxes — the action label disappears and the bottom group label provides the text. V2 fix would be registering new UNO commands with the desired Word-style labels.

@@ -40,7 +40,7 @@ ship downstream. That observation has driven several scope decisions
 | 1 | Incremental module deletions (1A–1G) | ✓ done — `d38f631d4` | 7 groups, build verified between each. See §3.1. |
 | 2 | Folder restructure (`apps/` + `core/`) | **cancelled** | Source cosmetics don't ship to RL agents in the docker image; the restructure cost (cross-module path rewrites, hybrid intermediate states) outweighed the developer-ergonomics gain. See §4.1. |
 | 3 | Writer logger | ✓ V1.1 done — `e2515c989` | Always-on event log: raw / semantic / outcome. See §3.3. |
-| 4 | Writer UI redesign (→ MS Word) | ✓ V1 done | Tabbed UI default + Word tab order + new Design/Mailings/Help tabs + Dark theme + sifr_dark icons. See §3.4. |
+| 4 | Writer UI redesign (→ MS Word) | ✓ V1 + parity fixes done | Tabbed UI default + Word tab order + new Design/Mailings/Help tabs + Dark theme + sifr_dark icons + sidebar fully suppressed + Home tab Word groups with bottom labels. See §3.4. |
 | 5 | Calc logger + UI redesign (→ MS Excel) | future | Same recipe as Phases 3 + 4 for Calc. |
 | 6 | Impress logger + UI redesign (→ MS PowerPoint) | future | Same recipe for Impress. |
 | 7 | Docker multi-stage image | future | Build-stage → runtime-stage with pre-built `instdir/`. |
@@ -163,16 +163,38 @@ agent trained on Word transfers to Writer with minimal adaptation.
 - Notebook bar variant: rewrote LO's existing Tabbed mode rather
   than building a new ribbon container.
 
+**V1.1 parity refinements** landed on `phase4/parity-fixes` after
+V1 merge (commits `1d3e79e72`..`5456ebb7c`):
+
+- Right-edge sidebar tab bar permanently hidden, dock window kept
+  invisible, and `RequestOpenDeck` no-op'd — Word has no
+  draggable / auto-summoned right pane. Cross-app side effects on
+  Calc / Impress catalogued in
+  [`PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md`](PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md).
+- QAT (the icon strip on the left of the notebook bar) gained
+  Comments / Editing / Share buttons matching Word's title-bar
+  right cluster.
+- Home tab body fully restructured to Word's 8 groups in order:
+  Clipboard / Font / Paragraph / Styles / Editing / Voice / Editor
+  / Add-ins, with vertical separators and bottom group labels.
+- Voice / Editor / Add-ins large buttons rendered icon-only
+  (action labels couldn't be overridden cleanly; the bottom group
+  label is the visible text under each icon).
+
 **Deferred to V2** (see [`PHASE4_BLOCKERS.md`](PHASE4_BLOCKERS.md)
 for the full sketch):
 
-- Custom title bar (QAT + Search + Account/Comments/Editing/Share)
+- Custom single-row title bar (CSD with embedded QAT + Search +
+  Account / Comments / Editing / Share cluster — invasive vcl
+  decoration override)
 - Status bar item reorder to exact Word order
 - Aptos default body font + default page settings (margins, line
   spacing, paragraph spacing) — both gated on either a code patch
   to `sw/source/core/swdoc/docnew.cxx` or a default template
-- Sidebar / task pane order audit
 - Microsoft Fluent UI System Icons full bundle
+- Styles gallery widening (StylesPreview widget is C++-internal)
+- Action button label overrides (Voice/Editor would say "Dictate"/"Editor"
+  on the button face; currently icons-only with group label below)
 
 ### 3.5 Phases 5–6 — Calc + Impress
 

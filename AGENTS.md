@@ -343,15 +343,28 @@ without LO equivalents are catalogued in
 (19 entries; Themes / Style Sets / Address Block / Track Changes
 helpers / etc.).
 
+**V1 + Parity refinements** (commits `1d3e79e72`..`5456ebb7c` on
+`phase4/parity-fixes`, owner-iterated after V1 merge):
+
+- Sidebar tab bar permanently hidden (was always-visible icon strip on right edge)
+- Sidebar dock window kept hidden so the draggable splitter never appears
+- `SidebarController::RequestOpenDeck` made no-op so deck never auto-summons on context change
+- QAT extended with Comments / Editing / Share buttons (`.uno:InsertAnnotation`, `.uno:EditDoc`, `.uno:SendMail`) mirroring Word's title-bar right cluster
+- Home tab body fully rewritten to Word's 8 groups in order: **Clipboard / Font / Paragraph / Styles / Editing / Voice / Editor / Add-ins**, with vertical separators and bottom group labels
+- Voice / Editor / Add-ins large buttons rendered icon-only (action labels couldn't be overridden cleanly; bottom group label is the visible text)
+
 **Deferred to V2** (see [`PHASE4_BLOCKERS.md`](docs/architecture/PHASE4_BLOCKERS.md)
 for the full sketch of each):
 
-- Custom title bar with QAT + Microsoft Search + Account / Comments / Editing / Share cluster
+- Custom single-row title bar with embedded QAT + Microsoft Search + Account / Comments / Editing / Share cluster (CSD work)
 - Status bar item reorder to exact Word order
 - Aptos font bundle + set as default body font
 - Default page settings (1-inch margins, 1.08 line spacing, 8pt para after)
-- Sidebar / task pane order audit
 - True Microsoft Fluent UI System Icons bundle (V1 uses `sifr_dark` LO theme)
+- Styles gallery widening to match Word's horizontal flow (StylesPreview widget is C++-internal)
+
+**Cross-app side effects** for Calc / Impress documented in
+[`PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md`](docs/architecture/PHASE4_SIDE_EFFECTS_CALC_IMPRESS.md).
 
 ---
 
